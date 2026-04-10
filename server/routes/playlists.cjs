@@ -256,7 +256,6 @@ router.get('/:id/episodes', requireAuth, async (req, res) => {
         LEFT JOIN listen_progress lp ON lp.episode_id = e.id AND lp.user_id = $1
         WHERE ${where} ${completedFilter}
         ORDER BY ${orderClause}
-        LIMIT 200
       `, params);
     } else {
       // Manual playlist: from junction table
@@ -430,7 +429,6 @@ router.post('/:id/queue', requireAuth, async (req, res) => {
         LEFT JOIN listen_progress lp ON lp.episode_id = e.id AND lp.user_id = $1
         WHERE ${where} ${completedFilter}
         ORDER BY ${orderClause}
-        LIMIT 200
       `, params);
     } else {
       episodes = await db.query(`
