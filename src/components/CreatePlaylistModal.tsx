@@ -53,51 +53,55 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
           <button className="btn-icon" onClick={onClose}><X size={20} /></button>
         </div>
         <form onSubmit={handleSubmit}>
-          <label>
-            <span>Name</span>
-            <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder={isSmart ? 'e.g. Quick Listens, Catch Up...' : 'e.g. Road Trip, Favorites...'}
-              autoFocus
-            />
-          </label>
+          <div className="modal-body">
+            <label>
+              <span>Name</span>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder={isSmart ? 'e.g. Quick Listens, Catch Up...' : 'e.g. Road Trip, Favorites...'}
+                autoFocus
+              />
+            </label>
 
-          <div className="playlist-type-toggle">
-            <button type="button" className={`type-btn ${!isSmart ? 'active' : ''}`} onClick={() => handleSmartToggle(false)}>
-              Manual
-            </button>
-            <button type="button" className={`type-btn ${isSmart ? 'active' : ''}`} onClick={() => handleSmartToggle(true)}>
-              Smart
+            <div className="playlist-type-toggle">
+              <button type="button" className={`type-btn ${!isSmart ? 'active' : ''}`} onClick={() => handleSmartToggle(false)}>
+                Manual
+              </button>
+              <button type="button" className={`type-btn ${isSmart ? 'active' : ''}`} onClick={() => handleSmartToggle(true)}>
+                Smart
+              </button>
+            </div>
+
+            {isSmart ? (
+              <SmartPlaylistBuilder rules={rules} onChange={setRules} />
+            ) : null}
+
+            <label>
+              <span>Sort Order</span>
+              <select value={sortOrder} onChange={e => setSortOrder(e.target.value)}>
+                {!isSmart && <option value="manual">Manual (drag to reorder)</option>}
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="shortest">Shortest first</option>
+                <option value="longest">Longest first</option>
+              </select>
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={autoRemove}
+                onChange={e => setAutoRemove(e.target.checked)}
+              />
+              <span>Auto-hide completed episodes</span>
+            </label>
+          </div>
+          <div className="modal-footer">
+            <button type="submit" className="btn-primary" disabled={!name.trim()}>
+              Create Playlist
             </button>
           </div>
-
-          {isSmart ? (
-            <SmartPlaylistBuilder rules={rules} onChange={setRules} />
-          ) : null}
-
-          <label>
-            <span>Sort Order</span>
-            <select value={sortOrder} onChange={e => setSortOrder(e.target.value)}>
-              {!isSmart && <option value="manual">Manual (drag to reorder)</option>}
-              <option value="newest">Newest first</option>
-              <option value="oldest">Oldest first</option>
-              <option value="shortest">Shortest first</option>
-              <option value="longest">Longest first</option>
-            </select>
-          </label>
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              checked={autoRemove}
-              onChange={e => setAutoRemove(e.target.checked)}
-            />
-            <span>Auto-hide completed episodes</span>
-          </label>
-          <button type="submit" className="btn-primary" disabled={!name.trim()}>
-            Create Playlist
-          </button>
         </form>
       </div>
     </div>
