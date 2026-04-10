@@ -26,7 +26,7 @@ export function Login() {
       <form className="login-form" onSubmit={handleSubmit}>
         <div className="login-brand">
           <Headphones size={40} />
-          <h1>Podda</h1>
+          <h1>podda</h1>
         </div>
 
         {error && <div className="error-msg">{error}</div>}
