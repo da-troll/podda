@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { api } from '../api';
-import { Search, Plus, Check, Loader } from 'lucide-react';
+import { Search, Plus, Check, Loader, X } from 'lucide-react';
 import type { SearchResult } from '../types';
 
 export function Discover() {
@@ -10,6 +10,9 @@ export function Discover() {
   const [subscribing, setSubscribing] = useState<string | null>(null);
   const [subscribed, setSubscribed] = useState<Set<string>>(new Set());
   const [error, setError] = useState('');
+  const [showUrlModal, setShowUrlModal] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
+  const [urlError, setUrlError] = useState('');
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,21 +40,38 @@ export function Discover() {
     setSubscribing(null);
   };
 
-  const isUrl = query.trim().startsWith('http');
+  const handleUrlSubscribe = async () => {
+    const url = urlInput.trim();
+    if (!url.startsWith('http')) {
+      setUrlError('Please enter a valid URL starting with http:// or https://');
+      return;
+    }
+    setUrlError('');
+    setSubscribing(url);
+    try {
+      await api.subscribe(url);
+      setSubscribed(prev => new Set(prev).add(url));
+      setShowUrlModal(false);
+      setUrlInput('');
+    } catch (err: any) {
+      setUrlError(`Failed to subscribe: ${err.message}`);
+    }
+    setSubscribing(null);
+  };
+
+  const closeUrlModal = () => {
+    setShowUrlModal(false);
+    setUrlInput('');
+    setUrlError('');
+  };
 
   return (
     <div className="page discover">
       <div className="page-header">
         <h1>Discover</h1>
-        {isUrl && (
-          <button
-            className="btn-primary"
-            disabled={subscribing !== null}
-            onClick={() => handleSubscribe(query.trim())}
-          >
-            {subscribing ? <><Loader size={16} className="spinning" /> Subscribing…</> : <><Plus size={16} /> Subscribe by URL</>}
-          </button>
-        )}
+        <button className="btn-primary" onClick={() => setShowUrlModal(true)}>
+          <Plus size={16} /> Subscribe by URL
+        </button>
       </div>
 
       <form className="search-form" onSubmit={handleSearch}>
@@ -59,13 +79,13 @@ export function Discover() {
           <Search size={18} />
           <input
             type="text"
-            placeholder="Search podcasts or paste an RSS feed URL…"
+            placeholder="Search podcasts…"
             value={query}
             onChange={e => setQuery(e.target.value)}
             autoFocus
           />
         </div>
-        <button type="submit" className="btn-primary" disabled={searching || isUrl}>
+        <button type="submit" className="btn-primary" disabled={searching}>
           {searching ? 'Searching…' : 'Search'}
         </button>
       </form>
@@ -97,6 +117,39 @@ export function Discover() {
           </div>
         ))}
       </div>
+
+      {showUrlModal && (
+        <div className="modal-overlay" onClick={closeUrlModal}>
+          <div className="modal modal-compact" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Subscribe by URL</h2>
+              <button className="btn-icon" onClick={closeUrlModal}><X size={18} /></button>
+            </div>
+            <label>
+              <span>RSS feed URL</span>
+              <input
+                type="url"
+                placeholder="https://feeds.example.com/podcast.rss"
+                value={urlInput}
+                onChange={e => { setUrlInput(e.target.value); setUrlError(''); }}
+                onKeyDown={e => e.key === 'Enter' && handleUrlSubscribe()}
+                autoFocus
+              />
+            </label>
+            {urlError && <div className="error-msg">{urlError}</div>}
+            <div className="confirm-modal-actions">
+              <button className="btn-secondary" onClick={closeUrlModal}>Cancel</button>
+              <button
+                className="btn-primary"
+                onClick={handleUrlSubscribe}
+                disabled={subscribing !== null}
+              >
+                {subscribing ? <><Loader size={14} className="spinning" /> Subscribing…</> : 'Subscribe'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
