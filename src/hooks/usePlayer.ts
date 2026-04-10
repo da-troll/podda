@@ -11,6 +11,8 @@ interface PlayerState {
   speed: number;
   volume: number;
   loading: boolean;
+  queue: Episode[];
+  autoPlay: boolean;
 }
 
 interface PlayerContextType extends PlayerState {
@@ -22,6 +24,8 @@ interface PlayerContextType extends PlayerState {
   skipBackward: () => void;
   setSpeed: (speed: number) => void;
   setVolume: (vol: number) => void;
+  setQueue: (episodes: Episode[]) => void;
+  toggleAutoPlay: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | null>(null);
@@ -46,6 +50,9 @@ function smartRewindPosition(position: number, progressUpdatedAt?: string | null
 export function usePlayerState(): PlayerContextType {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSavedPosRef = useRef<number>(0);
+  const queueRef = useRef<Episode[]>([]);
+  const autoPlayRef = useRef<boolean>(localStorage.getItem('podda_autoplay') !== 'false');
+  const playRef = useRef<(episode: Episode, podcast?: Podcast | null) => void>(() => {});
 
   const [state, setState] = useState<PlayerState>({
     episode: null,
@@ -56,6 +63,8 @@ export function usePlayerState(): PlayerContextType {
     speed: 1,
     volume: 1,
     loading: false,
+    queue: [],
+    autoPlay: autoPlayRef.current,
   });
 
   // Save progress to backend
@@ -76,7 +85,6 @@ export function usePlayerState(): PlayerContextType {
     audio.src = episode.audio_url;
     audio.playbackRate = state.speed;
 
-    // Smart rewind: check if we should rewind a bit
     const rawPos = episode.listen_position || 0;
     const startPos = smartRewindPosition(rawPos, episode.progress_updated_at);
     if (startPos > 0) {
@@ -89,10 +97,8 @@ export function usePlayerState(): PlayerContextType {
       setState(prev => ({ ...prev, loading: false }));
     });
 
-    // Signal new session to backend (increments play_count)
     api.saveProgress(episode.id, Math.floor(startPos), false, true).catch(() => {});
 
-    // Update Media Session
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: episode.title,
@@ -104,6 +110,23 @@ export function usePlayerState(): PlayerContextType {
       });
     }
   }, [state.speed]);
+
+  // Keep playRef current so onEnded can always call the latest play()
+  useEffect(() => {
+    playRef.current = play;
+  }, [play]);
+
+  const setQueue = useCallback((episodes: Episode[]) => {
+    queueRef.current = episodes;
+    setState(prev => ({ ...prev, queue: episodes }));
+  }, []);
+
+  const toggleAutoPlay = useCallback(() => {
+    const next = !autoPlayRef.current;
+    autoPlayRef.current = next;
+    localStorage.setItem('podda_autoplay', String(next));
+    setState(prev => ({ ...prev, autoPlay: next }));
+  }, []);
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
@@ -156,10 +179,19 @@ export function usePlayerState(): PlayerContextType {
     };
 
     const onEnded = () => {
+      const audio = audioRef.current;
       setState(prev => {
-        if (prev.episode) saveProgress(prev.episode.id, audio.duration || 0, true);
+        if (prev.episode) saveProgress(prev.episode.id, audio?.duration || 0, true);
         return { ...prev, playing: false };
       });
+
+      // Auto-play next if enabled and queue is non-empty
+      if (autoPlayRef.current && queueRef.current.length > 0) {
+        const [next, ...rest] = queueRef.current;
+        queueRef.current = rest;
+        setState(prev => ({ ...prev, queue: rest }));
+        setTimeout(() => playRef.current(next), 300);
+      }
     };
 
     const onLoadedMetadata = () => {
@@ -224,6 +256,8 @@ export function usePlayerState(): PlayerContextType {
     skipBackward,
     setSpeed,
     setVolume,
+    setQueue,
+    toggleAutoPlay,
   };
 }
 

@@ -1,5 +1,5 @@
 import { usePlayerContext } from '../hooks/usePlayer';
-import { Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, ListEnd } from 'lucide-react';
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
 
@@ -17,6 +17,7 @@ export function Player() {
 
   const artwork = player.episode?.artwork_url || player.episode?.podcast_artwork_url || player.podcast?.artwork_url;
   const progress = player.duration > 0 ? (player.position / player.duration) * 100 : 0;
+  const upNext = player.autoPlay && player.queue.length > 0 ? player.queue[0] : null;
 
   const cycleSpeed = () => {
     const idx = SPEEDS.indexOf(player.speed);
@@ -26,11 +27,9 @@ export function Player() {
 
   return (
     <>
-    {/* Audio element always in DOM so ref is available before first play */}
     <audio ref={player.audioRef} />
 
     {player.episode && <div className="player">
-      {/* Progress bar (full width, clickable) */}
       <div
         className="player-progress-bar"
         onClick={(e) => {
@@ -48,7 +47,10 @@ export function Player() {
           <div className="player-text">
             <div className="player-title">{player.episode.title}</div>
             <div className="player-subtitle">
-              {player.episode.podcast_title || player.podcast?.title}
+              {upNext
+                ? <span className="player-up-next">Up next: {upNext.title}</span>
+                : <span>{player.episode.podcast_title || player.podcast?.title}</span>
+              }
             </div>
           </div>
         </div>
@@ -66,6 +68,13 @@ export function Player() {
             {formatTime(player.position)} / {formatTime(player.duration)}
           </span>
           <button onClick={cycleSpeed} className="player-speed">{player.speed}x</button>
+          <button
+            onClick={player.toggleAutoPlay}
+            className={`player-autoplay-btn ${player.autoPlay ? 'active' : ''}`}
+            title={player.autoPlay ? 'Auto-play on' : 'Auto-play off'}
+          >
+            <ListEnd size={16} />
+          </button>
         </div>
       </div>
     </div>}

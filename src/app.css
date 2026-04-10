@@ -174,6 +174,7 @@ img { display: block; max-width: 100%; }
 
 /* ── Episode List ────────────────────────────────────────── */
 .episode-list { display: flex; flex-direction: column; }
+.load-more-container { display: flex; justify-content: center; padding: 20px 0; }
 .episode-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .episode-row.completed { opacity: 0.6; }
 .episode-play-btn { width: 36px; height: 36px; flex-shrink: 0; display: grid; place-items: center; background: var(--accent); color: white; border-radius: 50%; transition: background 0.15s, box-shadow 0.15s; }
@@ -273,6 +274,10 @@ img { display: block; max-width: 100%; }
 .player-meta { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .player-time { font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .player-speed { font-size: 0.75rem; background: var(--bg-hover); padding: 3px 8px; border-radius: 4px; }
+.player-autoplay-btn { display: flex; align-items: center; color: var(--text-muted); opacity: 0.5; transition: color 0.15s, opacity 0.15s; }
+.player-autoplay-btn.active { color: var(--accent); opacity: 1; }
+.player-autoplay-btn:hover { opacity: 1; }
+.player-up-next { font-size: 0.72rem; color: var(--accent); opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; display: block; }
 
 /* ── Search / Discover ───────────────────────────────────── */
 .search-form { display: flex; gap: 8px; margin-bottom: 16px; }

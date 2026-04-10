@@ -5,6 +5,8 @@ import { ConfirmModal } from '../components/ConfirmModal';
 import { ArrowLeft, RefreshCw, Trash2 } from 'lucide-react';
 import type { Podcast, Episode, Page } from '../types';
 
+const PAGE_SIZE = 50;
+
 type SortOrder = 'newest' | 'oldest';
 
 interface PodcastDetailProps {
@@ -17,6 +19,7 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showUnsubConfirm, setShowUnsubConfirm] = useState(false);
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
@@ -24,7 +27,7 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
   const load = () => {
     Promise.all([
       api.getPodcasts() as Promise<Podcast[]>,
-      api.getEpisodes(podcastId, 100) as Promise<{ episodes: Episode[]; total: number }>,
+      api.getEpisodes(podcastId, PAGE_SIZE, 0) as Promise<{ episodes: Episode[]; total: number }>,
     ]).then(([pods, data]) => {
       setPodcast(pods.find(p => p.id === podcastId) || null);
       setEpisodes(data.episodes);
@@ -34,6 +37,19 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
   };
 
   useEffect(load, [podcastId]);
+
+  const handleLoadMore = async () => {
+    setLoadingMore(true);
+    try {
+      const data = await api.getEpisodes(podcastId, PAGE_SIZE, episodes.length) as { episodes: Episode[]; total: number };
+      setEpisodes(prev => [...prev, ...data.episodes]);
+      setTotal(data.total);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -59,6 +75,8 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
     await api.unsubscribe(podcastId);
     onNavigate({ type: 'library' });
   };
+
+  const hasMore = episodes.length < total;
 
   if (loading) return <div className="page-loading">Loading...</div>;
   if (!podcast) return <div className="page-loading">Podcast not found</div>;
@@ -90,7 +108,7 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
       </div>
 
       <div className="episode-list-header">
-        <span>{total} episodes</span>
+        <span>{episodes.length < total ? `${episodes.length} of ${total} episodes` : `${total} episodes`}</span>
         <div className="episode-list-header-actions">
           <select
             className="sort-select"
@@ -107,10 +125,23 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
       </div>
 
       <div className="episode-list">
-        {sortedEpisodes.map(ep => (
-          <EpisodeRow key={ep.id} episode={ep} podcast={podcast} />
+        {sortedEpisodes.map((ep, idx) => (
+          <EpisodeRow
+            key={ep.id}
+            episode={ep}
+            podcast={podcast}
+            queue={sortedEpisodes.slice(idx + 1)}
+          />
         ))}
       </div>
+
+      {hasMore && (
+        <div className="load-more-container">
+          <button className="btn-secondary" onClick={handleLoadMore} disabled={loadingMore}>
+            {loadingMore ? 'Loading…' : `Load more (${total - episodes.length} remaining)`}
+          </button>
+        </div>
+      )}
 
       {showUnsubConfirm && (
         <ConfirmModal

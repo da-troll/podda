@@ -220,6 +220,7 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
                 <EpisodeRow
                   episode={ep}
                   showPodcast
+                  queue={episodes.slice(index + 1)}
                   onMarkPlayed={!ep.listen_completed ? async () => {
                     await api.markPlayed(ep.id);
                     load();

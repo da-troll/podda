@@ -37,9 +37,10 @@ interface EpisodeRowProps {
   onMarkUnplayed?: () => void;
   onRemoveFromPlaylist?: () => void;
   hidePlaylistAction?: boolean;
+  queue?: Episode[];
 }
 
-export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, onMarkPlayed, onMarkUnplayed, onRemoveFromPlaylist, hidePlaylistAction }: EpisodeRowProps) {
+export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, onMarkPlayed, onMarkUnplayed, onRemoveFromPlaylist, hidePlaylistAction, queue }: EpisodeRowProps) {
   const player = usePlayerContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
@@ -60,6 +61,7 @@ export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, o
           if (isPlaying) {
             player.togglePlay();
           } else {
+            if (queue) player.setQueue(queue);
             player.play(episode, podcast);
           }
         }}
