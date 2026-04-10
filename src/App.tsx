@@ -89,7 +89,7 @@ function AppContent() {
             <button className="btn-icon mobile-menu" onClick={() => setSidebarOpen(o => !o)}>
               {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
-            <span className="app-header-title">Podda</span>
+            <span className="app-header-title">podda</span>
           </header>
           <main className="main-content">
             {renderPage()}
