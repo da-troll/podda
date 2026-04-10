@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useAuthContext } from '../hooks/useAuth';
-import { Headphones } from 'lucide-react';
 
 export function Login() {
   const { login } = useAuthContext();
@@ -25,7 +24,6 @@ export function Login() {
     <div className="login-page">
       <form className="login-form" onSubmit={handleSubmit}>
         <div className="login-brand">
-          <Headphones size={40} />
           <img src="/podda-logo.png" alt="podda" className="brand-logo brand-logo--login" />
         </div>
 
