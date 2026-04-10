@@ -32,9 +32,19 @@ export function usePlayerContext() {
   return ctx;
 }
 
+// Smart rewind: if resuming after 12+ hours, rewind 15 seconds
+function smartRewindPosition(position: number, progressUpdatedAt?: string | null): number {
+  if (!progressUpdatedAt || position <= 15) return position;
+  const elapsed = Date.now() - new Date(progressUpdatedAt).getTime();
+  const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+  if (elapsed > TWELVE_HOURS) {
+    return Math.max(0, position - 15);
+  }
+  return position;
+}
+
 export function usePlayerState(): PlayerContextType {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const saveTimerRef = useRef<number>(0);
   const lastSavedPosRef = useRef<number>(0);
 
   const [state, setState] = useState<PlayerState>({
@@ -66,7 +76,9 @@ export function usePlayerState(): PlayerContextType {
     audio.src = episode.audio_url;
     audio.playbackRate = state.speed;
 
-    const startPos = episode.listen_position || 0;
+    // Smart rewind: check if we should rewind a bit
+    const rawPos = episode.listen_position || 0;
+    const startPos = smartRewindPosition(rawPos, episode.progress_updated_at);
     if (startPos > 0) {
       audio.currentTime = startPos;
     }
@@ -76,6 +88,9 @@ export function usePlayerState(): PlayerContextType {
     }).catch(() => {
       setState(prev => ({ ...prev, loading: false }));
     });
+
+    // Signal new session to backend (increments play_count)
+    api.saveProgress(episode.id, Math.floor(startPos), false, true).catch(() => {});
 
     // Update Media Session
     if ('mediaSession' in navigator) {

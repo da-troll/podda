@@ -88,6 +88,9 @@ async function initDB() {
         position INTEGER NOT NULL DEFAULT 0,
         completed BOOLEAN DEFAULT FALSE,
         updated_at TIMESTAMPTZ DEFAULT NOW(),
+        played_at TIMESTAMPTZ,
+        play_count INTEGER DEFAULT 0,
+        completed_at TIMESTAMPTZ,
         UNIQUE(user_id, episode_id)
       );
       CREATE INDEX IF NOT EXISTS idx_progress_user ON listen_progress(user_id);

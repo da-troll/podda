@@ -36,6 +36,10 @@ export interface Episode {
   podcast_author?: string;
   listen_position?: number | null;
   listen_completed?: boolean | null;
+  progress_updated_at?: string | null;
+  played_at?: string | null;
+  play_count?: number;
+  completed_at?: string | null;
 }
 
 export interface SearchResult {
@@ -52,4 +56,5 @@ export type Page =
   | { type: 'podcast'; id: number }
   | { type: 'discover' }
   | { type: 'queue' }
+  | { type: 'history' }
   | { type: 'settings' };

@@ -1,4 +1,5 @@
-import { Play, Pause, Check } from 'lucide-react';
+import { useState } from 'react';
+import { Play, Pause, Check, MoreVertical, CheckCircle, RotateCcw } from 'lucide-react';
 import { usePlayerContext } from '../hooks/usePlayer';
 import type { Episode, Podcast } from '../types';
 
@@ -8,6 +9,11 @@ function formatDuration(secs: number | null): string {
   const m = Math.floor((secs % 3600) / 60);
   if (h > 0) return `${h}h ${m}m`;
   return `${m} min`;
+}
+
+function formatTimeRemaining(position: number, duration: number): string {
+  const remaining = Math.max(0, duration - position);
+  return formatDuration(remaining) + ' left';
 }
 
 function formatDate(dateStr: string | null): string {
@@ -25,15 +31,20 @@ interface EpisodeRowProps {
   episode: Episode;
   podcast?: Podcast | null;
   showPodcast?: boolean;
+  showTimeRemaining?: boolean;
+  onMarkPlayed?: () => void;
+  onMarkUnplayed?: () => void;
 }
 
-export function EpisodeRow({ episode, podcast, showPodcast }: EpisodeRowProps) {
+export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, onMarkPlayed, onMarkUnplayed }: EpisodeRowProps) {
   const player = usePlayerContext();
+  const [menuOpen, setMenuOpen] = useState(false);
   const isPlaying = player.episode?.id === episode.id;
   const completed = episode.listen_completed;
   const progress = episode.listen_position && episode.duration
     ? Math.floor((episode.listen_position / episode.duration) * 100)
     : 0;
+  const hasActions = onMarkPlayed || onMarkUnplayed;
 
   return (
     <div className={`episode-row ${completed ? 'completed' : ''}`}>
@@ -57,7 +68,11 @@ export function EpisodeRow({ episode, podcast, showPodcast }: EpisodeRowProps) {
             <span className="episode-podcast-name">{episode.podcast_title}</span>
           )}
           <span>{formatDate(episode.pub_date)}</span>
-          {episode.duration && <span>{formatDuration(episode.duration)}</span>}
+          {showTimeRemaining && episode.listen_position && episode.duration ? (
+            <span className="episode-time-remaining">{formatTimeRemaining(episode.listen_position, episode.duration)}</span>
+          ) : (
+            episode.duration && <span>{formatDuration(episode.duration)}</span>
+          )}
           {completed && <Check size={14} className="episode-check" />}
         </div>
         {progress > 0 && !completed && (
@@ -66,6 +81,31 @@ export function EpisodeRow({ episode, podcast, showPodcast }: EpisodeRowProps) {
           </div>
         )}
       </div>
+
+      {hasActions && (
+        <div className="episode-actions">
+          <button className="btn-icon episode-menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
+            <MoreVertical size={16} />
+          </button>
+          {menuOpen && (
+            <>
+              <div className="episode-menu-overlay" onClick={() => setMenuOpen(false)} />
+              <div className="episode-menu">
+                {onMarkPlayed && (
+                  <button onClick={() => { onMarkPlayed(); setMenuOpen(false); }}>
+                    <CheckCircle size={15} /> Mark as played
+                  </button>
+                )}
+                {onMarkUnplayed && (
+                  <button onClick={() => { onMarkUnplayed(); setMenuOpen(false); }}>
+                    <RotateCcw size={15} /> Mark as unplayed
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

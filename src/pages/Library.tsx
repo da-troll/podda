@@ -1,11 +1,33 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
-import { RefreshCw } from 'lucide-react';
 import type { Podcast, Episode, Page } from '../types';
 
 interface LibraryProps {
   onNavigate: (page: Page) => void;
+}
+
+function ContinueListening() {
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
+
+  useEffect(() => {
+    (api.getInProgress() as Promise<Episode[]>)
+      .then(setEpisodes)
+      .catch(console.error);
+  }, []);
+
+  if (episodes.length === 0) return null;
+
+  return (
+    <div className="continue-listening">
+      <h2 className="section-title">Continue Listening</h2>
+      <div className="continue-listening-list">
+        {episodes.slice(0, 5).map(ep => (
+          <EpisodeRow key={ep.id} episode={ep} showPodcast showTimeRemaining />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export function Library({ onNavigate }: LibraryProps) {
@@ -29,6 +51,8 @@ export function Library({ onNavigate }: LibraryProps) {
 
   return (
     <div className="page library">
+      <ContinueListening />
+
       <div className="page-header">
         <h1>Library</h1>
         <div className="tab-bar">

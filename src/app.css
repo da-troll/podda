@@ -159,6 +159,24 @@ img { display: block; max-width: 100%; }
 .login-form input:focus { border-color: var(--accent); }
 .login-form .btn-primary { width: 100%; padding: 12px; font-size: 1rem; }
 
+/* ── Continue Listening ──────────────────────────────────── */
+.continue-listening { margin-bottom: 24px; }
+.section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; }
+.continue-listening-list { display: flex; flex-direction: column; }
+.episode-time-remaining { color: var(--accent); font-weight: 500; }
+
+/* ── Episode Actions (context menu) ─────────────────────── */
+.episode-actions { position: relative; flex-shrink: 0; }
+.episode-menu-btn { color: var(--text-muted); }
+.episode-menu-btn:hover { color: var(--text); }
+.episode-menu-overlay { position: fixed; inset: 0; z-index: 60; }
+.episode-menu { position: absolute; right: 0; top: 100%; z-index: 61; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); min-width: 180px; padding: 4px 0; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+.episode-menu button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 14px; font-size: 0.85rem; color: var(--text); }
+.episode-menu button:hover { background: var(--bg-hover); }
+
+/* ── Load More ──────────────────────────────────────────── */
+.load-more { margin: 16px auto; }
+
 /* ── Utilities ───────────────────────────────────────────── */
 .spinning { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }

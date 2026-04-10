@@ -40,10 +40,18 @@ export const api = {
     request(`/api/episodes/${id}`),
 
   // Progress
-  saveProgress: (episodeId: number, position: number, completed = false) =>
-    request(`/api/progress/${episodeId}`, { method: 'PUT', body: JSON.stringify({ position, completed }) }),
+  saveProgress: (episodeId: number, position: number, completed = false, isNewSession = false) =>
+    request(`/api/progress/${episodeId}`, { method: 'PUT', body: JSON.stringify({ position, completed, isNewSession }) }),
   getInProgress: () =>
     request('/api/progress/in-progress'),
+
+  // History
+  getHistory: (limit = 50, offset = 0, filter?: string) =>
+    request(`/api/history?limit=${limit}&offset=${offset}${filter ? `&filter=${filter}` : ''}`),
+  markPlayed: (episodeId: number) =>
+    request(`/api/history/${episodeId}/mark-played`, { method: 'POST' }),
+  markUnplayed: (episodeId: number) =>
+    request(`/api/history/${episodeId}/mark-unplayed`, { method: 'POST' }),
 
   // Search
   search: (q: string) =>

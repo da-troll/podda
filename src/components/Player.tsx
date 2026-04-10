@@ -14,9 +14,8 @@ function formatTime(s: number): string {
 
 export function Player() {
   const player = usePlayerContext();
-  if (!player.episode) return null;
 
-  const artwork = player.episode.artwork_url || player.episode.podcast_artwork_url || player.podcast?.artwork_url;
+  const artwork = player.episode?.artwork_url || player.episode?.podcast_artwork_url || player.podcast?.artwork_url;
   const progress = player.duration > 0 ? (player.position / player.duration) * 100 : 0;
 
   const cycleSpeed = () => {
@@ -26,9 +25,11 @@ export function Player() {
   };
 
   return (
-    <div className="player">
-      <audio ref={player.audioRef} />
+    <>
+    {/* Audio element always in DOM so ref is available before first play */}
+    <audio ref={player.audioRef} />
 
+    {player.episode && <div className="player">
       {/* Progress bar (full width, clickable) */}
       <div
         className="player-progress-bar"
@@ -67,6 +68,7 @@ export function Player() {
           <button onClick={cycleSpeed} className="player-speed">{player.speed}x</button>
         </div>
       </div>
-    </div>
+    </div>}
+    </>
   );
 }

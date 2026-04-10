@@ -8,6 +8,7 @@ import { Library } from './pages/Library';
 import { PodcastDetail } from './pages/PodcastDetail';
 import { Discover } from './pages/Discover';
 import { Settings } from './pages/Settings';
+import { History } from './pages/History';
 import { Menu, X } from 'lucide-react';
 import type { Page } from './types';
 
@@ -18,6 +19,7 @@ function parseHash(): Page {
     if (!isNaN(id)) return { type: 'podcast', id };
   }
   if (hash === 'discover') return { type: 'discover' };
+  if (hash === 'history') return { type: 'history' };
   if (hash === 'settings') return { type: 'settings' };
   if (hash === 'queue') return { type: 'queue' };
   return { type: 'library' };
@@ -28,6 +30,7 @@ function pageToHash(page: Page): string {
     case 'library': return '#library';
     case 'podcast': return `#podcast/${page.id}`;
     case 'discover': return '#discover';
+    case 'history': return '#history';
     case 'settings': return '#settings';
     case 'queue': return '#queue';
   }
@@ -54,6 +57,7 @@ function AppContent() {
       case 'library': return <Library onNavigate={navigate} />;
       case 'podcast': return <PodcastDetail podcastId={page.id} onNavigate={navigate} />;
       case 'discover': return <Discover />;
+      case 'history': return <History />;
       case 'settings': return <Settings />;
       default: return <Library onNavigate={navigate} />;
     }
