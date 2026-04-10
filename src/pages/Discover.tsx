@@ -43,13 +43,15 @@ export function Discover() {
     <div className="page discover">
       <div className="page-header">
         <h1>Discover</h1>
-        <button
-          className="btn-primary"
-          disabled={!isUrl || subscribing !== null}
-          onClick={() => { if (isUrl) handleSubscribe(query.trim()); }}
-        >
-          <Plus size={16} /> Subscribe by URL
-        </button>
+        {isUrl && (
+          <button
+            className="btn-primary"
+            disabled={subscribing !== null}
+            onClick={() => handleSubscribe(query.trim())}
+          >
+            {subscribing ? <><Loader size={16} className="spinning" /> Subscribing…</> : <><Plus size={16} /> Subscribe by URL</>}
+          </button>
+        )}
       </div>
 
       <form className="search-form" onSubmit={handleSearch}>
