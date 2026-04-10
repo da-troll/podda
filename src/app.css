@@ -166,7 +166,11 @@ img { display: block; max-width: 100%; }
 .podcast-hero-author { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 4px; }
 .podcast-hero-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; }
 .podcast-hero-actions { display: flex; gap: 8px; }
-.episode-list-header { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; }
+.episode-list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.episode-list-header > span { font-size: 0.85rem; color: var(--text-muted); }
+.episode-list-header-actions { display: flex; align-items: center; gap: 6px; }
+.sort-select { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-primary); font-size: 0.8rem; padding: 4px 8px; border-radius: var(--radius-sm); cursor: pointer; }
+.sort-select:focus { outline: none; border-color: var(--accent); }
 
 /* ── Episode List ────────────────────────────────────────── */
 .episode-list { display: flex; flex-direction: column; }

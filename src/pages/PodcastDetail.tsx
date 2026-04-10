@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { ArrowLeft, RefreshCw, Trash2 } from 'lucide-react';
 import type { Podcast, Episode, Page } from '../types';
+
+type SortOrder = 'newest' | 'oldest';
 
 interface PodcastDetailProps {
   podcastId: number;
@@ -17,6 +19,7 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showUnsubConfirm, setShowUnsubConfirm] = useState(false);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
 
   const load = () => {
     Promise.all([
@@ -42,6 +45,15 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
     }
     setRefreshing(false);
   };
+
+  const sortedEpisodes = useMemo(() => {
+    const sorted = [...episodes].sort((a, b) => {
+      const da = a.pub_date ? new Date(a.pub_date).getTime() : 0;
+      const db = b.pub_date ? new Date(b.pub_date).getTime() : 0;
+      return sortOrder === 'newest' ? db - da : da - db;
+    });
+    return sorted;
+  }, [episodes, sortOrder]);
 
   const handleUnsubscribe = async () => {
     await api.unsubscribe(podcastId);
@@ -70,9 +82,6 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
             <p className="podcast-hero-desc">{podcast.description.slice(0, 300)}</p>
           )}
           <div className="podcast-hero-actions">
-            <button className="btn-secondary" onClick={handleRefresh} disabled={refreshing}>
-              <RefreshCw size={14} className={refreshing ? 'spinning' : ''} /> Refresh
-            </button>
             <button className="btn-danger" onClick={() => setShowUnsubConfirm(true)}>
               <Trash2 size={14} /> Unsubscribe
             </button>
@@ -82,10 +91,23 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
 
       <div className="episode-list-header">
         <span>{total} episodes</span>
+        <div className="episode-list-header-actions">
+          <select
+            className="sort-select"
+            value={sortOrder}
+            onChange={e => setSortOrder(e.target.value as SortOrder)}
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
+          <button className="btn-icon" onClick={handleRefresh} disabled={refreshing} title="Refresh">
+            <RefreshCw size={16} className={refreshing ? 'spinning' : ''} />
+          </button>
+        </div>
       </div>
 
       <div className="episode-list">
-        {episodes.map(ep => (
+        {sortedEpisodes.map(ep => (
           <EpisodeRow key={ep.id} episode={ep} podcast={podcast} />
         ))}
       </div>
