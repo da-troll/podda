@@ -84,6 +84,11 @@ export function Discover() {
             onChange={e => setQuery(e.target.value)}
             autoFocus
           />
+          {query && (
+            <button type="button" className="search-clear-btn" onClick={() => { setQuery(''); setResults([]); setError(''); }}>
+              <X size={14} />
+            </button>
+          )}
         </div>
         <button type="submit" className="btn-primary" disabled={searching}>
           {searching ? 'Searching…' : 'Search'}
