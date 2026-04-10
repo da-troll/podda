@@ -89,8 +89,9 @@ img { display: block; max-width: 100%; }
 .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
 .page-header h1 { font-size: 1.5rem; font-weight: 700; }
 
-/* Playlists: title left, "+ New" right */
-.playlists .page-header { justify-content: space-between; }
+/* Title left, action button right */
+.playlists .page-header,
+.discover .page-header { justify-content: space-between; }
 
 /* ── Glassy Segmented Tab Control ────────────────────────── */
 .tab-bar {

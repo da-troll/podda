@@ -37,10 +37,19 @@ export function Discover() {
     setSubscribing(null);
   };
 
+  const isUrl = query.trim().startsWith('http');
+
   return (
     <div className="page discover">
       <div className="page-header">
         <h1>Discover</h1>
+        <button
+          className="btn-primary"
+          disabled={!isUrl || subscribing !== null}
+          onClick={() => { if (isUrl) handleSubscribe(query.trim()); }}
+        >
+          <Plus size={16} /> Subscribe by URL
+        </button>
       </div>
 
       <form className="search-form" onSubmit={handleSearch}>
@@ -48,34 +57,16 @@ export function Discover() {
           <Search size={18} />
           <input
             type="text"
-            placeholder="Search podcasts..."
+            placeholder="Search podcasts or paste an RSS feed URL…"
             value={query}
             onChange={e => setQuery(e.target.value)}
             autoFocus
           />
         </div>
-        <button type="submit" className="btn-primary" disabled={searching}>
-          {searching ? 'Searching...' : 'Search'}
+        <button type="submit" className="btn-primary" disabled={searching || isUrl}>
+          {searching ? 'Searching…' : 'Search'}
         </button>
       </form>
-
-      {/* Direct URL subscribe */}
-      <div className="direct-subscribe">
-        <p className="hint">Or paste an RSS feed URL directly:</p>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          const url = query.trim();
-          if (url.startsWith('http')) handleSubscribe(url);
-        }}>
-          <button
-            type="submit"
-            className="btn-secondary"
-            disabled={!query.trim().startsWith('http') || subscribing !== null}
-          >
-            <Plus size={14} /> Subscribe by URL
-          </button>
-        </form>
-      </div>
 
       {error && <div className="error-msg">{error}</div>}
 
@@ -96,7 +87,7 @@ export function Discover() {
               {subscribed.has(r.feedUrl) ? (
                 <><Check size={14} /> Added</>
               ) : subscribing === r.feedUrl ? (
-                <><Loader size={14} className="spinning" /> Adding...</>
+                <><Loader size={14} className="spinning" /> Adding…</>
               ) : (
                 <><Plus size={14} /> Subscribe</>
               )}
