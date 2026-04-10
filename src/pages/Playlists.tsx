@@ -58,10 +58,15 @@ export function Playlists({ onNavigate }: PlaylistsProps) {
 
       {playlists.length === 0 ? (
         <div className="empty-state">
-          <p>No playlists yet. Create one to organize your episodes.</p>
-          <button className="btn-primary" onClick={() => setShowCreate(true)}>
-            Create Playlist
-          </button>
+          <div className="empty-state-card">
+            <div className="empty-state-icon-wrap">
+              <ListMusic size={36} />
+            </div>
+            <p>No playlists yet. Create one to organize your episodes.</p>
+            <button className="btn-primary" onClick={() => setShowCreate(true)}>
+              Create Playlist
+            </button>
+          </div>
         </div>
       ) : (
         <div className="playlist-grid">

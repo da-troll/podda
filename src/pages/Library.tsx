@@ -23,7 +23,9 @@ function ContinueListening() {
       <h2 className="section-title">Continue Listening</h2>
       <div className="continue-listening-list">
         {episodes.slice(0, 5).map(ep => (
-          <EpisodeRow key={ep.id} episode={ep} showPodcast showTimeRemaining />
+          <div key={ep.id} className="continue-listening-card">
+            <EpisodeRow episode={ep} showPodcast showTimeRemaining />
+          </div>
         ))}
       </div>
     </div>
