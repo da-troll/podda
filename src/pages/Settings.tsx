@@ -7,6 +7,7 @@ export function Settings() {
   const { user, logout } = useAuthContext();
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ total: number; success: number; failed: number } | null>(null);
+  const [importError, setImportError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleOpmlImport = async () => {
@@ -15,12 +16,13 @@ export function Settings() {
 
     setImporting(true);
     setImportResult(null);
+    setImportError('');
     try {
       const text = await file.text();
       const result = await api.importOpml(text) as { total: number; success: number; failed: number };
       setImportResult(result);
     } catch (err: any) {
-      alert(`Import failed: ${err.message}`);
+      setImportError(`Import failed: ${err.message}`);
     }
     setImporting(false);
   };
@@ -53,6 +55,7 @@ export function Settings() {
           />
           {importing && <span className="hint">Importing... this may take a minute.</span>}
         </div>
+        {importError && <div className="error-msg">{importError}</div>}
         {importResult && (
           <div className="import-result">
             Imported {importResult.success} of {importResult.total} podcasts.

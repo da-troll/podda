@@ -32,7 +32,7 @@ export function Discover() {
       await api.subscribe(feedUrl);
       setSubscribed(prev => new Set(prev).add(feedUrl));
     } catch (err: any) {
-      alert(`Failed to subscribe: ${err.message}`);
+      setError(`Failed to subscribe: ${err.message}`);
     }
     setSubscribing(null);
   };

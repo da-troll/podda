@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
+import { ConfirmModal } from '../components/ConfirmModal';
 import { ArrowLeft, RefreshCw, Trash2 } from 'lucide-react';
 import type { Podcast, Episode, Page } from '../types';
 
@@ -15,6 +16,7 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showUnsubConfirm, setShowUnsubConfirm] = useState(false);
 
   const load = () => {
     Promise.all([
@@ -42,7 +44,6 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
   };
 
   const handleUnsubscribe = async () => {
-    if (!confirm('Unsubscribe from this podcast?')) return;
     await api.unsubscribe(podcastId);
     onNavigate({ type: 'library' });
   };
@@ -72,7 +73,7 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
             <button className="btn-secondary" onClick={handleRefresh} disabled={refreshing}>
               <RefreshCw size={14} className={refreshing ? 'spinning' : ''} /> Refresh
             </button>
-            <button className="btn-danger" onClick={handleUnsubscribe}>
+            <button className="btn-danger" onClick={() => setShowUnsubConfirm(true)}>
               <Trash2 size={14} /> Unsubscribe
             </button>
           </div>
@@ -88,6 +89,17 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
           <EpisodeRow key={ep.id} episode={ep} podcast={podcast} />
         ))}
       </div>
+
+      {showUnsubConfirm && (
+        <ConfirmModal
+          title="Unsubscribe"
+          message={`Unsubscribe from "${podcast.title}"? Your listen progress will be kept.`}
+          confirmLabel="Unsubscribe"
+          danger
+          onConfirm={handleUnsubscribe}
+          onCancel={() => setShowUnsubConfirm(false)}
+        />
+      )}
     </div>
   );
 }

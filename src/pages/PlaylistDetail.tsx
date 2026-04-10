@@ -3,6 +3,7 @@ import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
 import { SmartPlaylistBuilder, filterSummary } from '../components/SmartPlaylistBuilder';
 import { ArrowLeft, Trash2, GripVertical, SkipForward, ListEnd, Settings2, Zap } from 'lucide-react';
+import { ConfirmModal } from '../components/ConfirmModal';
 import type { Playlist, Episode, SmartPlaylistRules, Page } from '../types';
 
 interface PlaylistDetailProps {
@@ -27,6 +28,7 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
   const [editAutoRemove, setEditAutoRemove] = useState(true);
   const [editRules, setEditRules] = useState<SmartPlaylistRules>({});
   const [showSettings, setShowSettings] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const dragItem = useRef<number | null>(null);
   const dragOver = useRef<number | null>(null);
 
@@ -62,7 +64,6 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
   };
 
   const handleDelete = async () => {
-    if (!confirm(`Delete "${playlist?.name}"? This cannot be undone.`)) return;
     await api.deletePlaylist(playlistId);
     onNavigate({ type: 'playlists' });
   };
@@ -173,7 +174,7 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
           </label>
           <div className="playlist-settings-actions">
             <button className="btn-primary" onClick={handleSaveSettings}>Save</button>
-            <button className="btn-danger" onClick={handleDelete}>
+            <button className="btn-danger" onClick={() => setShowDeleteConfirm(true)}>
               <Trash2 size={14} /> Delete Playlist
             </button>
           </div>
@@ -235,6 +236,17 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
           ))
         )}
       </div>
+
+      {showDeleteConfirm && (
+        <ConfirmModal
+          title="Delete Playlist"
+          message={`Delete "${playlist.name}"? This cannot be undone.`}
+          confirmLabel="Delete"
+          danger
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
     </div>
   );
 }
