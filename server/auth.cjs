@@ -21,7 +21,7 @@ router.post('/login', async (req, res) => {
 
   try {
     const result = await db.query(
-      'SELECT id, username, display_name, password_hash, is_admin FROM users WHERE username = $1',
+      'SELECT id, username, display_name, first_name, last_name, email, password_hash, is_admin FROM users WHERE username = $1',
       [username]
     );
     const user = result.rows[0];
@@ -35,6 +35,9 @@ router.post('/login', async (req, res) => {
       id: user.id,
       username: user.username,
       displayName: user.display_name,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
       isAdmin: user.is_admin,
     });
   } catch (err) {
@@ -59,7 +62,7 @@ router.get('/me', async (req, res) => {
 
   try {
     const result = await db.query(
-      'SELECT id, username, display_name, is_admin FROM users WHERE id = $1',
+      'SELECT id, username, display_name, first_name, last_name, email, is_admin FROM users WHERE id = $1',
       [req.session.userId]
     );
     const user = result.rows[0];
@@ -70,6 +73,9 @@ router.get('/me', async (req, res) => {
       id: user.id,
       username: user.username,
       displayName: user.display_name,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
       isAdmin: user.is_admin,
     });
   } catch (err) {

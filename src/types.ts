@@ -2,6 +2,9 @@ export interface User {
   id: number;
   username: string;
   displayName: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
   isAdmin: boolean;
 }
 
