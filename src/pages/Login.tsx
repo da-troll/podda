@@ -26,7 +26,7 @@ export function Login() {
       <form className="login-form" onSubmit={handleSubmit}>
         <div className="login-brand">
           <Headphones size={40} />
-          <h1>podda</h1>
+          <img src="/podda-logo.png" alt="podda" className="brand-logo brand-logo--login" />
         </div>
 
         {error && <div className="error-msg">{error}</div>}

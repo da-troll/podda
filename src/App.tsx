@@ -89,7 +89,7 @@ function AppContent() {
             <button className="btn-icon mobile-menu" onClick={() => setSidebarOpen(o => !o)}>
               {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
-            <span className="app-header-title">podda</span>
+            <img src="/podda-logo.png" alt="podda" className="brand-logo brand-logo--header" />
           </header>
           <main className="main-content">
             {renderPage()}

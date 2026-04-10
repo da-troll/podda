@@ -20,7 +20,7 @@ export function Sidebar({ currentPage, onNavigate, onClose }: SidebarProps) {
     <nav className="sidebar">
       <div className="sidebar-brand">
         <Headphones size={24} />
-        <span>podda</span>
+        <img src="/podda-logo.png" alt="podda" className="brand-logo brand-logo--sidebar" />
       </div>
       <ul className="sidebar-nav">
         {NAV_ITEMS.map(({ page, icon: Icon, label }) => (
