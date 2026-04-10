@@ -1,4 +1,4 @@
-import { Library, Search, Settings, Headphones, Clock } from 'lucide-react';
+import { Library, Search, Settings, Headphones, Clock, ListMusic } from 'lucide-react';
 import type { Page } from '../types';
 
 interface SidebarProps {
@@ -9,6 +9,7 @@ interface SidebarProps {
 
 const NAV_ITEMS: { page: Page; icon: typeof Library; label: string }[] = [
   { page: { type: 'library' }, icon: Library, label: 'Library' },
+  { page: { type: 'playlists' }, icon: ListMusic, label: 'Playlists' },
   { page: { type: 'history' }, icon: Clock, label: 'History' },
   { page: { type: 'discover' }, icon: Search, label: 'Discover' },
   { page: { type: 'settings' }, icon: Settings, label: 'Settings' },

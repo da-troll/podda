@@ -9,6 +9,8 @@ import { PodcastDetail } from './pages/PodcastDetail';
 import { Discover } from './pages/Discover';
 import { Settings } from './pages/Settings';
 import { History } from './pages/History';
+import { Playlists } from './pages/Playlists';
+import { PlaylistDetail } from './pages/PlaylistDetail';
 import { Menu, X } from 'lucide-react';
 import type { Page } from './types';
 
@@ -20,6 +22,11 @@ function parseHash(): Page {
   }
   if (hash === 'discover') return { type: 'discover' };
   if (hash === 'history') return { type: 'history' };
+  if (hash === 'playlists') return { type: 'playlists' };
+  if (hash.startsWith('playlist/')) {
+    const id = parseInt(hash.split('/')[1]);
+    if (!isNaN(id)) return { type: 'playlist', id };
+  }
   if (hash === 'settings') return { type: 'settings' };
   if (hash === 'queue') return { type: 'queue' };
   return { type: 'library' };
@@ -31,6 +38,8 @@ function pageToHash(page: Page): string {
     case 'podcast': return `#podcast/${page.id}`;
     case 'discover': return '#discover';
     case 'history': return '#history';
+    case 'playlists': return '#playlists';
+    case 'playlist': return `#playlist/${page.id}`;
     case 'settings': return '#settings';
     case 'queue': return '#queue';
   }
@@ -58,6 +67,8 @@ function AppContent() {
       case 'podcast': return <PodcastDetail podcastId={page.id} onNavigate={navigate} />;
       case 'discover': return <Discover />;
       case 'history': return <History />;
+      case 'playlists': return <Playlists onNavigate={navigate} />;
+      case 'playlist': return <PlaylistDetail playlistId={page.id} onNavigate={navigate} />;
       case 'settings': return <Settings />;
       default: return <Library onNavigate={navigate} />;
     }

@@ -53,6 +53,26 @@ export const api = {
   markUnplayed: (episodeId: number) =>
     request(`/api/history/${episodeId}/mark-unplayed`, { method: 'POST' }),
 
+  // Playlists
+  getPlaylists: () =>
+    request('/api/playlists'),
+  createPlaylist: (data: { name: string; is_smart?: boolean; rules?: unknown; sort_order?: string; auto_remove_completed?: boolean }) =>
+    request('/api/playlists', { method: 'POST', body: JSON.stringify(data) }),
+  updatePlaylist: (id: number, data: { name?: string; rules?: unknown; sort_order?: string; auto_remove_completed?: boolean }) =>
+    request(`/api/playlists/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deletePlaylist: (id: number) =>
+    request(`/api/playlists/${id}`, { method: 'DELETE' }),
+  getPlaylistEpisodes: (id: number) =>
+    request(`/api/playlists/${id}/episodes`),
+  addToPlaylist: (playlistId: number, episodeIds: number[]) =>
+    request(`/api/playlists/${playlistId}/episodes`, { method: 'POST', body: JSON.stringify({ episode_ids: episodeIds }) }),
+  removeFromPlaylist: (playlistId: number, episodeId: number) =>
+    request(`/api/playlists/${playlistId}/episodes/${episodeId}`, { method: 'DELETE' }),
+  reorderPlaylist: (playlistId: number, episodeIds: number[]) =>
+    request(`/api/playlists/${playlistId}/reorder`, { method: 'PUT', body: JSON.stringify({ episode_ids: episodeIds }) }),
+  queuePlaylist: (playlistId: number, mode: 'next' | 'last') =>
+    request(`/api/playlists/${playlistId}/queue`, { method: 'POST', body: JSON.stringify({ mode }) }),
+
   // Search
   search: (q: string) =>
     request(`/api/search?q=${encodeURIComponent(q)}`),

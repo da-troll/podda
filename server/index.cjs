@@ -14,6 +14,7 @@ const episodeRouter = require('./routes/episodes.cjs');
 const playerRouter = require('./routes/player.cjs');
 const searchRouter = require('./routes/search.cjs');
 const historyRouter = require('./routes/history.cjs');
+const playlistRouter = require('./routes/playlists.cjs');
 const { pollFeeds } = require('./poller.cjs');
 
 const app = express();
@@ -55,6 +56,7 @@ app.use('/api/episodes', episodeRouter);
 app.use('/api/progress', playerRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/history', historyRouter);
+app.use('/api/playlists', playlistRouter);
 
 // Serve static frontend
 const distPath = path.join(__dirname, '..', 'dist');

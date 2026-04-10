@@ -109,6 +109,35 @@ async function initDB() {
       CREATE INDEX IF NOT EXISTS idx_queue_user_position ON queue(user_id, position);
     `);
 
+    // Playlists (manual and smart)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS playlists (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        name VARCHAR(100) NOT NULL,
+        is_smart BOOLEAN DEFAULT FALSE,
+        rules JSONB,
+        sort_order VARCHAR(20) DEFAULT 'manual',
+        auto_remove_completed BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_playlists_user ON playlists(user_id);
+    `);
+
+    // Playlist episodes (manual playlist ordering)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS playlist_episodes (
+        id SERIAL PRIMARY KEY,
+        playlist_id INTEGER NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
+        episode_id INTEGER NOT NULL REFERENCES episodes(id) ON DELETE CASCADE,
+        position INTEGER NOT NULL DEFAULT 0,
+        added_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(playlist_id, episode_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_playlist_episodes_order ON playlist_episodes(playlist_id, position);
+    `);
+
     await client.query('COMMIT');
     console.log('[pappapod] Database schema initialized');
   } catch (err) {

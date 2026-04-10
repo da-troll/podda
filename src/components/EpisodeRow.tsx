@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Play, Pause, Check, MoreVertical, CheckCircle, RotateCcw } from 'lucide-react';
+import { Play, Pause, Check, MoreVertical, CheckCircle, RotateCcw, ListPlus, X as XIcon } from 'lucide-react';
 import { usePlayerContext } from '../hooks/usePlayer';
+import { AddToPlaylistModal } from './AddToPlaylistModal';
 import type { Episode, Podcast } from '../types';
 
 function formatDuration(secs: number | null): string {
@@ -34,17 +35,22 @@ interface EpisodeRowProps {
   showTimeRemaining?: boolean;
   onMarkPlayed?: () => void;
   onMarkUnplayed?: () => void;
+  onRemoveFromPlaylist?: () => void;
+  hidePlaylistAction?: boolean;
 }
 
-export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, onMarkPlayed, onMarkUnplayed }: EpisodeRowProps) {
+export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, onMarkPlayed, onMarkUnplayed, onRemoveFromPlaylist, hidePlaylistAction }: EpisodeRowProps) {
   const player = usePlayerContext();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
   const isPlaying = player.episode?.id === episode.id;
   const completed = episode.listen_completed;
   const progress = episode.listen_position && episode.duration
     ? Math.floor((episode.listen_position / episode.duration) * 100)
     : 0;
-  const hasActions = onMarkPlayed || onMarkUnplayed;
+
+  // Always show the menu button (playlist add is universally available)
+  const hasAnyAction = onMarkPlayed || onMarkUnplayed || onRemoveFromPlaylist || !hidePlaylistAction;
 
   return (
     <div className={`episode-row ${completed ? 'completed' : ''}`}>
@@ -82,7 +88,7 @@ export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, o
         )}
       </div>
 
-      {hasActions && (
+      {hasAnyAction && (
         <div className="episode-actions">
           <button className="btn-icon episode-menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
             <MoreVertical size={16} />
@@ -91,6 +97,16 @@ export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, o
             <>
               <div className="episode-menu-overlay" onClick={() => setMenuOpen(false)} />
               <div className="episode-menu">
+                {!hidePlaylistAction && (
+                  <button onClick={() => { setMenuOpen(false); setShowAddToPlaylist(true); }}>
+                    <ListPlus size={15} /> Add to playlist
+                  </button>
+                )}
+                {onRemoveFromPlaylist && (
+                  <button onClick={() => { onRemoveFromPlaylist(); setMenuOpen(false); }}>
+                    <XIcon size={15} /> Remove from playlist
+                  </button>
+                )}
                 {onMarkPlayed && (
                   <button onClick={() => { onMarkPlayed(); setMenuOpen(false); }}>
                     <CheckCircle size={15} /> Mark as played
@@ -105,6 +121,13 @@ export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, o
             </>
           )}
         </div>
+      )}
+
+      {showAddToPlaylist && (
+        <AddToPlaylistModal
+          episodeId={episode.id}
+          onClose={() => setShowAddToPlaylist(false)}
+        />
       )}
     </div>
   );

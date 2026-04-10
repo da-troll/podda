@@ -51,10 +51,35 @@ export interface SearchResult {
   trackCount: number;
 }
 
+export interface Playlist {
+  id: number;
+  user_id: number;
+  name: string;
+  is_smart: boolean;
+  rules: SmartPlaylistRules | null;
+  sort_order: 'manual' | 'newest' | 'oldest' | 'shortest' | 'longest';
+  auto_remove_completed: boolean;
+  created_at: string;
+  updated_at: string;
+  episode_count?: number;
+  total_duration?: number;
+}
+
+export interface SmartPlaylistRules {
+  podcasts?: number[] | null;
+  exclude_podcasts?: number[] | null;
+  status?: 'unplayed' | 'in-progress' | 'played' | 'any';
+  released_after?: '24h' | '3d' | '7d' | '14d' | '30d' | 'any';
+  duration_min?: number | null;
+  duration_max?: number | null;
+}
+
 export type Page =
   | { type: 'library' }
   | { type: 'podcast'; id: number }
   | { type: 'discover' }
   | { type: 'queue' }
   | { type: 'history' }
+  | { type: 'playlists' }
+  | { type: 'playlist'; id: number }
   | { type: 'settings' };
