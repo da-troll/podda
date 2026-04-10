@@ -130,6 +130,7 @@ export function SmartPlaylistBuilder({ rules, onChange }: SmartPlaylistBuilderPr
           {['all', 'include', 'exclude'].map(mode => (
             <button
               key={mode}
+              type="button"
               className={`smart-mode-btn ${includeMode === mode ? 'active' : ''}`}
               onClick={() => handleModeChange(mode)}
             >
@@ -145,6 +146,7 @@ export function SmartPlaylistBuilder({ rules, onChange }: SmartPlaylistBuilderPr
               return (
                 <button
                   key={p.id}
+                  type="button"
                   className={`smart-podcast-chip ${selected ? 'selected' : ''}`}
                   onClick={() => togglePodcast(p.id, list)}
                 >
