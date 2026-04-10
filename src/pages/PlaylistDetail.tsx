@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
-import { ArrowLeft, Play, Trash2, GripVertical, SkipForward, ListEnd, Settings2 } from 'lucide-react';
-import type { Playlist, Episode, Page } from '../types';
+import { SmartPlaylistBuilder, filterSummary } from '../components/SmartPlaylistBuilder';
+import { ArrowLeft, Trash2, GripVertical, SkipForward, ListEnd, Settings2, Zap } from 'lucide-react';
+import type { Playlist, Episode, SmartPlaylistRules, Page } from '../types';
 
 interface PlaylistDetailProps {
   playlistId: number;
@@ -21,10 +22,10 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
   const [playlist, setPlaylist] = useState<Playlist | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editSort, setEditSort] = useState('manual');
   const [editAutoRemove, setEditAutoRemove] = useState(true);
+  const [editRules, setEditRules] = useState<SmartPlaylistRules>({});
   const [showSettings, setShowSettings] = useState(false);
   const dragItem = useRef<number | null>(null);
   const dragOver = useRef<number | null>(null);
@@ -37,6 +38,7 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
       setEditName(data.playlist.name);
       setEditSort(data.playlist.sort_order);
       setEditAutoRemove(data.playlist.auto_remove_completed);
+      if (data.playlist.rules) setEditRules(data.playlist.rules);
     } catch (err) {
       console.error('Failed to load playlist:', err);
     } finally {
@@ -53,10 +55,7 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
 
   const handleQueuePlaylist = async (mode: 'next' | 'last') => {
     try {
-      const result = await api.queuePlaylist(playlistId, mode) as { ok: boolean; added: number };
-      if (result.added > 0) {
-        // Visual feedback could go here
-      }
+      await api.queuePlaylist(playlistId, mode);
     } catch (err) {
       console.error('Failed to queue playlist:', err);
     }
@@ -70,52 +69,43 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
 
   const handleSaveSettings = async () => {
     try {
-      const updated = await api.updatePlaylist(playlistId, {
+      const updateData: Record<string, unknown> = {
         name: editName,
         sort_order: editSort,
         auto_remove_completed: editAutoRemove,
-      }) as Playlist;
+      };
+      if (playlist?.is_smart) {
+        updateData.rules = editRules;
+      }
+      const updated = await api.updatePlaylist(playlistId, updateData) as Playlist;
       setPlaylist(updated);
       setShowSettings(false);
-      // Reload episodes if sort changed
-      if (updated.sort_order !== playlist?.sort_order || updated.auto_remove_completed !== playlist?.auto_remove_completed) {
-        load();
-      }
+      load(); // always reload to reflect changes
     } catch (err) {
       console.error('Failed to update playlist:', err);
     }
   };
 
   // Drag reorder (manual playlists only)
-  const handleDragStart = (index: number) => {
-    dragItem.current = index;
-  };
-
-  const handleDragEnter = (index: number) => {
-    dragOver.current = index;
-  };
-
+  const handleDragStart = (index: number) => { dragItem.current = index; };
+  const handleDragEnter = (index: number) => { dragOver.current = index; };
   const handleDragEnd = async () => {
     if (dragItem.current === null || dragOver.current === null || dragItem.current === dragOver.current) {
       dragItem.current = null;
       dragOver.current = null;
       return;
     }
-
     const reordered = [...episodes];
     const [removed] = reordered.splice(dragItem.current, 1);
     reordered.splice(dragOver.current, 0, removed);
     setEpisodes(reordered);
-
     dragItem.current = null;
     dragOver.current = null;
-
-    // Persist new order
     try {
       await api.reorderPlaylist(playlistId, reordered.map(ep => ep.id));
     } catch (err) {
       console.error('Failed to save reorder:', err);
-      load(); // reload on failure
+      load();
     }
   };
 
@@ -123,6 +113,7 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
   if (!playlist) return <div className="empty-state">Playlist not found.</div>;
 
   const isManual = !playlist.is_smart && playlist.sort_order === 'manual';
+  const filters = playlist.is_smart && playlist.rules ? filterSummary(playlist.rules) : [];
 
   return (
     <div className="page playlist-detail">
@@ -131,7 +122,10 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
           <ArrowLeft size={20} />
         </button>
         <div className="playlist-detail-info">
-          <h1>{playlist.name}</h1>
+          <h1>
+            {playlist.is_smart && <Zap size={18} className="smart-icon" />}
+            {playlist.name}
+          </h1>
           <div className="playlist-detail-meta">
             {episodes.length} episodes · {SORT_LABELS[playlist.sort_order]}
             {playlist.auto_remove_completed && ' · Auto-hide completed'}
@@ -142,16 +136,31 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
         </button>
       </div>
 
+      {/* Smart playlist filter summary */}
+      {playlist.is_smart && filters.length > 0 && !showSettings && (
+        <div className="filter-summary">
+          <span className="filter-summary-label">Filtered by:</span>
+          {filters.map((f, i) => (
+            <span key={i} className="filter-chip">{f}</span>
+          ))}
+        </div>
+      )}
+
       {showSettings && (
         <div className="playlist-settings">
           <label>
             <span>Name</span>
             <input type="text" value={editName} onChange={e => setEditName(e.target.value)} />
           </label>
+
+          {playlist.is_smart && (
+            <SmartPlaylistBuilder rules={editRules} onChange={setEditRules} />
+          )}
+
           <label>
             <span>Sort Order</span>
             <select value={editSort} onChange={e => setEditSort(e.target.value)}>
-              <option value="manual">Manual (drag to reorder)</option>
+              {!playlist.is_smart && <option value="manual">Manual (drag to reorder)</option>}
               <option value="newest">Newest first</option>
               <option value="oldest">Oldest first</option>
               <option value="shortest">Shortest first</option>
@@ -185,7 +194,10 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
       <div className="episode-list">
         {episodes.length === 0 ? (
           <div className="empty-state">
-            <p>This playlist is empty. Add episodes from any podcast or episode list.</p>
+            <p>{playlist.is_smart
+              ? 'No episodes match these filters. Try adjusting the rules.'
+              : 'This playlist is empty. Add episodes from any podcast or episode list.'
+            }</p>
           </div>
         ) : (
           episodes.map((ep, index) => (
@@ -215,7 +227,8 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
                     await api.markUnplayed(ep.id);
                     load();
                   } : undefined}
-                  onRemoveFromPlaylist={() => handleRemove(ep.id)}
+                  onRemoveFromPlaylist={!playlist.is_smart ? () => handleRemove(ep.id) : undefined}
+                  hidePlaylistAction={playlist.is_smart}
                 />
               </div>
             </div>

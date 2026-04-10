@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { CreatePlaylistModal } from '../components/CreatePlaylistModal';
 import { Plus, ListMusic, Zap } from 'lucide-react';
-import type { Playlist, Page } from '../types';
+import type { Playlist, SmartPlaylistRules, Page } from '../types';
 
 function formatDuration(secs: number): string {
   if (!secs) return '';
@@ -28,12 +28,14 @@ export function Playlists({ onNavigate }: PlaylistsProps) {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleCreate = async (name: string, sortOrder: string, autoRemove: boolean) => {
+  const handleCreate = async (data: { name: string; is_smart: boolean; rules?: SmartPlaylistRules; sort_order: string; auto_remove_completed: boolean }) => {
     try {
       const pl = await api.createPlaylist({
-        name,
-        sort_order: sortOrder,
-        auto_remove_completed: autoRemove,
+        name: data.name,
+        is_smart: data.is_smart,
+        rules: data.rules,
+        sort_order: data.sort_order,
+        auto_remove_completed: data.auto_remove_completed,
       }) as Playlist;
       setPlaylists(prev => [pl, ...prev]);
       setShowCreate(false);

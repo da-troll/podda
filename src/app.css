@@ -235,6 +235,53 @@ img { display: block; max-width: 100%; }
 .add-to-playlist-new input { flex: 1; padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); outline: none; }
 .add-to-playlist-new .btn-primary { padding: 8px 14px; white-space: nowrap; width: auto; }
 
+/* ── Playlist Type Toggle (Create Modal) ──────────────────── */
+.playlist-type-toggle { display: flex; gap: 0; margin-bottom: 14px; background: var(--bg); border-radius: var(--radius); padding: 3px; }
+.type-btn { flex: 1; padding: 8px; text-align: center; border-radius: 6px; font-size: 0.9rem; font-weight: 500; color: var(--text-muted); transition: background 0.15s, color 0.15s; }
+.type-btn.active { background: var(--accent); color: #fff; }
+.type-btn:not(.active):hover { color: var(--text); }
+
+/* ── Smart Playlist Builder ───────────────────────────────── */
+.smart-builder { display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px; }
+.smart-builder-section label { display: block; margin-bottom: 0; }
+.smart-builder-section label span { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; }
+.smart-builder-section select {
+  width: 100%; padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); outline: none; appearance: auto;
+}
+.smart-builder-section select:focus { border-color: var(--accent); }
+.smart-builder-label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
+.smart-builder-row { display: flex; gap: 10px; }
+.smart-builder-half { flex: 1; }
+.smart-builder-half span { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px; }
+.smart-builder-half select {
+  width: 100%; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); outline: none; appearance: auto;
+}
+
+/* Podcast filter mode toggle */
+.smart-builder-mode { display: flex; gap: 0; margin-bottom: 8px; background: var(--bg); border-radius: var(--radius); padding: 3px; }
+.smart-mode-btn { flex: 1; padding: 6px; text-align: center; border-radius: 6px; font-size: 0.8rem; font-weight: 500; color: var(--text-muted); transition: background 0.15s, color 0.15s; }
+.smart-mode-btn.active { background: var(--accent); color: #fff; }
+.smart-mode-btn:not(.active):hover { color: var(--text); }
+
+/* Podcast chip picker */
+.smart-podcast-list { display: flex; flex-wrap: wrap; gap: 6px; max-height: 180px; overflow-y: auto; }
+.smart-podcast-chip {
+  display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px;
+  font-size: 0.8rem; color: var(--text-muted); transition: border-color 0.15s, color 0.15s, background 0.15s; cursor: pointer;
+}
+.smart-podcast-chip:hover { border-color: var(--accent); color: var(--text); }
+.smart-podcast-chip.selected { background: rgba(99,102,241,0.15); border-color: var(--accent); color: var(--text); }
+.smart-podcast-chip-art { width: 20px; height: 20px; border-radius: 4px; object-fit: cover; }
+
+/* ── Filter Summary (Playlist Detail) ─────────────────────── */
+.filter-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 0; margin-bottom: 8px; }
+.filter-summary-label { font-size: 0.8rem; color: var(--text-muted); }
+.filter-chip { padding: 3px 10px; background: rgba(99,102,241,0.12); color: var(--accent); border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
+
+/* Smart playlist icon */
+.smart-icon { display: inline-block; vertical-align: middle; margin-right: 4px; color: var(--accent); }
+.smart-badge { display: inline-block; margin-left: 6px; padding: 1px 6px; background: rgba(99,102,241,0.15); color: var(--accent); border-radius: 8px; font-size: 0.7rem; font-weight: 600; }
+
 /* ── Utilities ───────────────────────────────────────────── */
 .spinning { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }

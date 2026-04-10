@@ -1,20 +1,48 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { SmartPlaylistBuilder } from './SmartPlaylistBuilder';
+import type { SmartPlaylistRules } from '../types';
 
 interface CreatePlaylistModalProps {
   onClose: () => void;
-  onCreate: (name: string, sortOrder: string, autoRemove: boolean) => void;
+  onCreate: (data: { name: string; is_smart: boolean; rules?: SmartPlaylistRules; sort_order: string; auto_remove_completed: boolean }) => void;
 }
+
+const DEFAULT_RULES: SmartPlaylistRules = {
+  status: 'unplayed',
+  released_after: '7d',
+  duration_min: null,
+  duration_max: null,
+  podcasts: null,
+  exclude_podcasts: null,
+};
 
 export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalProps) {
   const [name, setName] = useState('');
+  const [isSmart, setIsSmart] = useState(false);
   const [sortOrder, setSortOrder] = useState('manual');
   const [autoRemove, setAutoRemove] = useState(true);
+  const [rules, setRules] = useState<SmartPlaylistRules>(DEFAULT_RULES);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    onCreate(name.trim(), sortOrder, autoRemove);
+    onCreate({
+      name: name.trim(),
+      is_smart: isSmart,
+      rules: isSmart ? rules : undefined,
+      sort_order: isSmart ? (sortOrder === 'manual' ? 'newest' : sortOrder) : sortOrder,
+      auto_remove_completed: autoRemove,
+    });
+  };
+
+  const handleSmartToggle = (smart: boolean) => {
+    setIsSmart(smart);
+    if (smart && sortOrder === 'manual') {
+      setSortOrder('newest');
+    } else if (!smart) {
+      setSortOrder('manual');
+    }
   };
 
   return (
@@ -31,14 +59,28 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="e.g. Road Trip, Favorites..."
+              placeholder={isSmart ? 'e.g. Quick Listens, Catch Up...' : 'e.g. Road Trip, Favorites...'}
               autoFocus
             />
           </label>
+
+          <div className="playlist-type-toggle">
+            <button type="button" className={`type-btn ${!isSmart ? 'active' : ''}`} onClick={() => handleSmartToggle(false)}>
+              Manual
+            </button>
+            <button type="button" className={`type-btn ${isSmart ? 'active' : ''}`} onClick={() => handleSmartToggle(true)}>
+              Smart
+            </button>
+          </div>
+
+          {isSmart ? (
+            <SmartPlaylistBuilder rules={rules} onChange={setRules} />
+          ) : null}
+
           <label>
             <span>Sort Order</span>
             <select value={sortOrder} onChange={e => setSortOrder(e.target.value)}>
-              <option value="manual">Manual (drag to reorder)</option>
+              {!isSmart && <option value="manual">Manual (drag to reorder)</option>}
               <option value="newest">Newest first</option>
               <option value="oldest">Oldest first</option>
               <option value="shortest">Shortest first</option>
