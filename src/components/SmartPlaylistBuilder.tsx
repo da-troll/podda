@@ -52,8 +52,8 @@ export function SmartPlaylistBuilder({ rules, onChange }: SmartPlaylistBuilderPr
     update({ [list]: next.length > 0 ? next : null });
   };
 
-  const includeMode = (rules.podcasts && rules.podcasts.length > 0) ? 'include'
-    : (rules.exclude_podcasts && rules.exclude_podcasts.length > 0) ? 'exclude'
+  const includeMode = (rules.podcasts !== null && rules.podcasts !== undefined) ? 'include'
+    : (rules.exclude_podcasts !== null && rules.exclude_podcasts !== undefined) ? 'exclude'
     : 'all';
 
   const handleModeChange = (mode: string) => {
