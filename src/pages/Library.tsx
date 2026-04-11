@@ -7,7 +7,7 @@ interface LibraryProps {
   onNavigate: (page: Page) => void;
 }
 
-function ContinueListening() {
+function ContinueListening({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
 
   useEffect(() => {
@@ -20,13 +20,14 @@ function ContinueListening() {
 
   return (
     <div className="continue-listening">
-      <h2 className="section-title">Continue Listening</h2>
+      <div className="section-header">
+        <h2 className="section-title">Continue Listening</h2>
+        <button className="section-link" onClick={() => onNavigate({ type: 'history' })}>See more</button>
+      </div>
       <div className="continue-listening-list">
-        {episodes.slice(0, 5).map(ep => (
-          <div key={ep.id} className="continue-listening-card">
-            <EpisodeRow episode={ep} showPodcast showTimeRemaining />
-          </div>
-        ))}
+        <div className="continue-listening-card">
+          <EpisodeRow episode={episodes[0]} showPodcast showTimeRemaining />
+        </div>
       </div>
     </div>
   );
@@ -53,7 +54,7 @@ export function Library({ onNavigate }: LibraryProps) {
 
   return (
     <div className="page library">
-      <ContinueListening />
+      <ContinueListening onNavigate={onNavigate} />
 
       <div className="page-header">
         <h1>Library</h1>

@@ -234,6 +234,10 @@ img { display: block; max-width: 100%; }
 
 /* ── Continue Listening ──────────────────────────────────── */
 .continue-listening { margin-bottom: 24px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-header .section-title { margin-bottom: 0; }
+.section-link { font-size: 0.85rem; color: var(--accent); background: none; border: none; cursor: pointer; font-weight: 500; }
+.section-link:hover { text-decoration: underline; }
 .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; }
 .continue-listening-list { display: flex; flex-direction: column; gap: 8px; }
 .continue-listening-card {
