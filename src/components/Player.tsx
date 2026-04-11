@@ -1,5 +1,5 @@
 import { usePlayerContext } from '../hooks/usePlayer';
-import { Play, Pause, SkipBack, SkipForward, ListEnd } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, ListEnd, Shuffle } from 'lucide-react';
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
 
@@ -53,25 +53,32 @@ export function Player() {
               }
             </div>
           </div>
-        </div>
-
-        <div className="player-right">
           <span className="player-time">
             {formatTime(player.position)} / {formatTime(player.duration)}
           </span>
           <button onClick={cycleSpeed} className="player-speed">{player.speed}x</button>
+        </div>
+
+        <div className="player-controls">
+          <button className="player-shuffle-btn" title="Shuffle">
+            <Shuffle size={20} />
+          </button>
+          <button onClick={player.skipBackward} title="Back 15s" className="player-transport">
+            <SkipBack size={22} />
+          </button>
+          <button onClick={player.togglePlay} className="player-play-btn">
+            {player.playing ? <Pause size={28} /> : <Play size={28} />}
+          </button>
+          <button onClick={player.skipForward} title="Forward 15s" className="player-transport">
+            <SkipForward size={22} />
+          </button>
           <button
             onClick={player.toggleAutoPlay}
             className={`player-autoplay-btn ${player.autoPlay ? 'active' : ''}`}
             title={player.autoPlay ? 'Auto-play on' : 'Auto-play off'}
           >
-            <ListEnd size={16} />
+            <ListEnd size={20} />
           </button>
-          <button onClick={player.skipBackward} title="Back 15s" className="player-transport"><SkipBack size={18} /></button>
-          <button onClick={player.togglePlay} className="player-play-btn">
-            {player.playing ? <Pause size={22} /> : <Play size={22} />}
-          </button>
-          <button onClick={player.skipForward} title="Forward 15s" className="player-transport"><SkipForward size={18} /></button>
         </div>
       </div>
     </div>}
