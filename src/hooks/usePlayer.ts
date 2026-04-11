@@ -13,6 +13,7 @@ interface PlayerState {
   loading: boolean;
   queue: Episode[];
   autoPlay: boolean;
+  shuffle: boolean;
 }
 
 interface PlayerContextType extends PlayerState {
@@ -26,6 +27,7 @@ interface PlayerContextType extends PlayerState {
   setVolume: (vol: number) => void;
   setQueue: (episodes: Episode[]) => void;
   toggleAutoPlay: () => void;
+  toggleShuffle: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | null>(null);
@@ -52,6 +54,7 @@ export function usePlayerState(): PlayerContextType {
   const lastSavedPosRef = useRef<number>(0);
   const queueRef = useRef<Episode[]>([]);
   const autoPlayRef = useRef<boolean>(localStorage.getItem('podda_autoplay') !== 'false');
+  const shuffleRef = useRef<boolean>(localStorage.getItem('podda_shuffle') === 'true');
   const playRef = useRef<(episode: Episode, podcast?: Podcast | null) => void>(() => {});
 
   const [state, setState] = useState<PlayerState>({
@@ -65,6 +68,7 @@ export function usePlayerState(): PlayerContextType {
     loading: false,
     queue: [],
     autoPlay: autoPlayRef.current,
+    shuffle: shuffleRef.current,
   });
 
   // Save progress to backend
@@ -128,6 +132,13 @@ export function usePlayerState(): PlayerContextType {
     setState(prev => ({ ...prev, autoPlay: next }));
   }, []);
 
+  const toggleShuffle = useCallback(() => {
+    const next = !shuffleRef.current;
+    shuffleRef.current = next;
+    localStorage.setItem('podda_shuffle', String(next));
+    setState(prev => ({ ...prev, shuffle: next }));
+  }, []);
+
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
     if (!audio || !state.episode) return;
@@ -186,7 +197,12 @@ export function usePlayerState(): PlayerContextType {
         // Auto-play next: update episode + queue in a single state transition
         // so the UI reflects the switch immediately (no 300ms stale-icon gap).
         if (autoPlayRef.current && queueRef.current.length > 0) {
-          const [next, ...rest] = queueRef.current;
+          let nextIdx = 0;
+          if (shuffleRef.current) {
+            nextIdx = Math.floor(Math.random() * queueRef.current.length);
+          }
+          const next = queueRef.current[nextIdx];
+          const rest = [...queueRef.current.slice(0, nextIdx), ...queueRef.current.slice(nextIdx + 1)];
           queueRef.current = rest;
           // Kick off audio load after state settles
           queueMicrotask(() => playRef.current(next, prev.podcast));
@@ -260,6 +276,7 @@ export function usePlayerState(): PlayerContextType {
     setVolume,
     setQueue,
     toggleAutoPlay,
+    toggleShuffle,
   };
 }
 

@@ -35,7 +35,8 @@
 html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; line-height: 1.5; }
 #root { height: 100%; }
 
-button { cursor: pointer; border: none; background: none; color: inherit; font: inherit; }
+button { cursor: pointer; border: none; background: none; color: inherit; font: inherit; -webkit-tap-highlight-color: transparent; outline: none; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 input { font: inherit; color: inherit; }
 a { color: var(--accent); text-decoration: none; }
 img { display: block; max-width: 100%; }
@@ -294,15 +295,15 @@ img { display: block; max-width: 100%; }
 .player-subtitle { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .player-controls { display: flex; align-items: center; justify-content: center; gap: 12px; flex-shrink: 0; }
 .player-transport { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: var(--text); transition: background 0.15s; }
-.player-transport:hover { background: var(--bg-hover); }
+@media (hover: hover) { .player-transport:hover { background: var(--bg-hover); } }
 .player-play-btn { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; background: var(--accent) !important; color: white !important; box-shadow: 0 0 14px var(--accent-glow); }
-.player-play-btn:hover { box-shadow: 0 0 20px rgba(99,102,241,0.5) !important; }
+@media (hover: hover) { .player-play-btn:hover { box-shadow: 0 0 20px rgba(99,102,241,0.5) !important; } }
 .player-shuffle-btn { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: var(--text-muted); opacity: 0.5; transition: color 0.15s, opacity 0.15s, background 0.15s; }
 .player-shuffle-btn.active { color: var(--accent); opacity: 1; }
-.player-shuffle-btn:hover { opacity: 1; background: var(--bg-hover); }
+@media (hover: hover) { .player-shuffle-btn:hover { opacity: 1; background: var(--bg-hover); } }
 .player-autoplay-btn { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: var(--text-muted); opacity: 0.5; transition: color 0.15s, opacity 0.15s, background 0.15s; }
 .player-autoplay-btn.active { color: var(--accent); opacity: 1; }
-.player-autoplay-btn:hover { opacity: 1; background: var(--bg-hover); }
+@media (hover: hover) { .player-autoplay-btn:hover { opacity: 1; background: var(--bg-hover); } }
 .player-time { font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; flex-shrink: 0; }
 .player-speed { font-size: 0.75rem; background: var(--bg-hover); padding: 3px 8px; border-radius: 4px; flex-shrink: 0; }
 .player-up-next { font-size: 0.72rem; color: var(--accent); opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; display: block; }

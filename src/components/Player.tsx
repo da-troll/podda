@@ -60,7 +60,11 @@ export function Player() {
         </div>
 
         <div className="player-controls">
-          <button className="player-shuffle-btn" title="Shuffle">
+          <button
+            onClick={player.toggleShuffle}
+            className={`player-shuffle-btn ${player.shuffle ? 'active' : ''}`}
+            title={player.shuffle ? 'Shuffle on' : 'Shuffle off'}
+          >
             <Shuffle size={20} />
           </button>
           <button onClick={player.skipBackward} title="Back 15s" className="player-transport">
