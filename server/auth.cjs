@@ -49,15 +49,17 @@ router.post('/login', async (req, res) => {
 // POST /api/auth/logout
 router.post('/logout', (req, res) => {
   req.session.destroy(() => {
-    res.clearCookie('pappapod.sid');
+    res.clearCookie('podda.sid');
     res.json({ ok: true });
   });
 });
 
 // GET /api/auth/me
+// Returns 200 with null when not authenticated (avoids browser console errors on initial load).
+// 401 is reserved for protected endpoints via requireAuth middleware.
 router.get('/me', async (req, res) => {
   if (!req.session.userId) {
-    return res.status(401).json({ error: 'Not authenticated' });
+    return res.json(null);
   }
 
   try {

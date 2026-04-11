@@ -21,7 +21,7 @@ const app = express();
 const PORT = process.env.PORT || 3150;
 
 if (!process.env.SESSION_SECRET) {
-  console.error('[pappapod] SESSION_SECRET is required in .env');
+  console.error('[podda] SESSION_SECRET is required in .env');
   process.exit(1);
 }
 
@@ -37,7 +37,7 @@ app.use(session({
     pool: db.pool,
     tableName: 'session',
   }),
-  name: 'pappapod.sid',
+  name: 'podda.sid',
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
@@ -79,10 +79,10 @@ async function seedAdmin() {
         'INSERT INTO users (username, password_hash, display_name, is_admin) VALUES ($1, $2, $3, true)',
         [username, hash, username]
       );
-      console.log(`[pappapod] Seeded admin user: ${username}`);
+      console.log(`[podda] Seeded admin user: ${username}`);
     }
   } catch (err) {
-    console.error('[pappapod] Failed to seed admin:', err.message);
+    console.error('[podda] Failed to seed admin:', err.message);
   }
 }
 
@@ -93,7 +93,7 @@ async function start() {
     await seedAdmin();
 
     app.listen(PORT, () => {
-      console.log(`[pappapod] Server running on port ${PORT}`);
+      console.log(`[podda] Server running on port ${PORT}`);
     });
 
     // Start background RSS poller (every 30 min)
@@ -102,7 +102,7 @@ async function start() {
     setInterval(pollFeeds, 30 * 60 * 1000);
 
   } catch (err) {
-    console.error('[pappapod] Failed to start:', err);
+    console.error('[podda] Failed to start:', err);
     process.exit(1);
   }
 }

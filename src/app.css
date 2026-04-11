@@ -2,18 +2,26 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0f0f14;
-  --bg-surface: #1a1a24;
-  --bg-hover: #242436;
-  --bg-active: #2e2e45;
+  --bg-backup: #0f0f14;
+  --bg-surface-backup: #1a1a24;
+  --bg-hover-backup: #242436;
+  --bg-active-backup: #2e2e45;
+  --bg: #0f1117;
+  --bg-surface: #171b24;
+  --bg-hover: #1f242f;
+  --bg-active: #282d3b;
   --text: #e8e8ed;
   --text-muted: #8888a0;
+  --accent-backup: #f3a520;
+  --accent-hover-backup: #f5b342;
+  --accent-glow-backup: rgba(243, 165, 32, 0.35);
   --accent: #6366f1;
   --accent-hover: #7c7ff7;
   --accent-glow: rgba(99, 102, 241, 0.35);
   --danger: #ef4444;
   --success: #22c55e;
-  --border: #2a2a3e;
+  --border-backup: #2a2a3e;
+  --border: #1f242f;
   --radius: 8px;
   --sidebar-w: 220px;
   --player-h: 80px;
@@ -53,7 +61,7 @@ img { display: block; max-width: 100%; }
 
 .sidebar-container {
   width: var(--sidebar-w); flex-shrink: 0;
-  background: rgba(13, 13, 20, 0.88);
+  background: var(--bg-surface);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid var(--glass-border);
@@ -528,7 +536,7 @@ img { display: block; max-width: 100%; }
 /* ── Playlist Type Toggle (Create Modal) ──────────────────── */
 .playlist-type-toggle { display: flex; gap: 0; margin-bottom: 14px; background: var(--bg); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 3px; }
 .type-btn { flex: 1; padding: 8px; text-align: center; border-radius: 6px; font-size: 0.9rem; font-weight: 500; color: var(--text-muted); transition: background 0.15s, color 0.15s; }
-.type-btn.active { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(99,102,241,0.35); }
+.type-btn.active { background: var(--accent); color: white; box-shadow: 0 2px 8px rgba(99,102,241,0.35); }
 .type-btn:not(.active):hover { color: var(--text); }
 
 /* ── Smart Playlist Builder ───────────────────────────────── */
@@ -550,7 +558,7 @@ img { display: block; max-width: 100%; }
 /* Podcast filter mode toggle */
 .smart-builder-mode { display: flex; gap: 0; margin-bottom: 8px; background: var(--bg); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 3px; }
 .smart-mode-btn { flex: 1; padding: 6px; text-align: center; border-radius: 6px; font-size: 0.8rem; font-weight: 500; color: var(--text-muted); transition: background 0.15s, color 0.15s; }
-.smart-mode-btn.active { background: var(--accent); color: #fff; }
+.smart-mode-btn.active { background: var(--accent); color: white; }
 .smart-mode-btn:not(.active):hover { color: var(--text); }
 
 /* Podcast chip picker */
@@ -586,7 +594,7 @@ img { display: block; max-width: 100%; }
   .sidebar-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
 
   .app-header {
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center;
     padding: 10px 16px;
     background: rgba(13, 13, 20, 0.92);
     backdrop-filter: blur(20px);
@@ -594,6 +602,8 @@ img { display: block; max-width: 100%; }
     border-bottom: 1px solid var(--glass-border);
     position: relative; z-index: 101;
   }
+  .app-header .brand-logo--header { flex: 1; display: block; margin: 0 auto; }
+  .app-header::after { content: ''; width: 36px; flex-shrink: 0; }
   .app-header-title { font-weight: 700; font-size: 1.1rem; color: var(--accent); }
 
   .main-content { padding: 16px; }
@@ -603,7 +613,8 @@ img { display: block; max-width: 100%; }
 
   .player-info { flex: 0 1 auto; }
   .player-text { max-width: 120px; }
-  .player-meta { display: none; }
+  .player-meta .player-time,
+  .player-meta .player-speed { display: none; }
 }
 
 @media (min-width: 769px) {

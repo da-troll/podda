@@ -182,16 +182,18 @@ export function usePlayerState(): PlayerContextType {
       const audio = audioRef.current;
       setState(prev => {
         if (prev.episode) saveProgress(prev.episode.id, audio?.duration || 0, true);
+
+        // Auto-play next: update episode + queue in a single state transition
+        // so the UI reflects the switch immediately (no 300ms stale-icon gap).
+        if (autoPlayRef.current && queueRef.current.length > 0) {
+          const [next, ...rest] = queueRef.current;
+          queueRef.current = rest;
+          // Kick off audio load after state settles
+          queueMicrotask(() => playRef.current(next, prev.podcast));
+          return { ...prev, playing: false, episode: next, queue: rest, loading: true };
+        }
         return { ...prev, playing: false };
       });
-
-      // Auto-play next if enabled and queue is non-empty
-      if (autoPlayRef.current && queueRef.current.length > 0) {
-        const [next, ...rest] = queueRef.current;
-        queueRef.current = rest;
-        setState(prev => ({ ...prev, queue: rest }));
-        setTimeout(() => playRef.current(next), 300);
-      }
     };
 
     const onLoadedMetadata = () => {

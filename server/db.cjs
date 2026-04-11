@@ -146,10 +146,10 @@ async function initDB() {
     `);
 
     await client.query('COMMIT');
-    console.log('[pappapod] Database schema initialized');
+    console.log('[podda] Database schema initialized');
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('[pappapod] Database init failed:', err);
+    console.error('[podda] Database init failed:', err);
     throw err;
   } finally {
     client.release();

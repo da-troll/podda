@@ -1,4 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <circle cx="50" cy="50" r="45" fill="#6366f1" />
-  <path d="M40 30 L40 70 L72 50 Z" fill="white" />
+  <text
+    x="50"
+    y="62"
+    font-family="'Arial Rounded MT Bold', 'Nunito', 'Varela Round', system-ui, sans-serif"
+    font-size="66"
+    font-weight="700"
+    fill="white"
+    text-anchor="middle"
+  >p</text>
 </svg>

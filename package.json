@@ -1,5 +1,5 @@
 {
-  "name": "pappapod",
+  "name": "podda",
   "version": "1.4.0",
   "type": "module",
   "private": true,
@@ -30,6 +30,7 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
+    "sharp": "^0.34.5",
     "typescript": "~5.7.2",
     "vite": "^6.3.2"
   }

@@ -1,4 +1,4 @@
-# PappaPod Backlog
+# Podda Backlog
 
 ## User Management
 
@@ -21,5 +21,5 @@
 
 ### Phase D — Quick DB Fix
 - Change Daniel's password from `changeme` to something real
-- Change Terje's temp password `pappapod2026`
+- Change Terje's temp password `podda2026`
 - *(Unblocked once Phase B lands)*

@@ -32,7 +32,7 @@ async function fetchFeed(url, timeoutMs = 10000) {
       signal: controller.signal,
       redirect: 'follow',
       headers: {
-        'User-Agent': 'PappaPod/1.0 (podcast aggregator)',
+        'User-Agent': 'Podda/1.0 (podcast aggregator)',
       },
     });
 

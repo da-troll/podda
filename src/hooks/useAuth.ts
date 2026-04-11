@@ -23,7 +23,7 @@ export function useAuthState(): AuthContextType {
 
   useEffect(() => {
     api.me()
-      .then((u) => setUser(u as User))
+      .then((u) => setUser((u as User) ?? null))
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
