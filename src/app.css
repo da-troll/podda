@@ -292,12 +292,11 @@ img { display: block; max-width: 100%; }
 .player-text { min-width: 0; }
 .player-title { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .player-subtitle { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.player-controls { display: flex; align-items: center; gap: 8px; }
-.player-controls button { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: var(--text); transition: background 0.15s; }
-.player-controls button:hover { background: var(--bg-hover); }
-.player-play-btn { background: var(--accent) !important; color: white !important; box-shadow: 0 0 14px var(--accent-glow); }
+.player-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.player-transport { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: var(--text); transition: background 0.15s; }
+.player-transport:hover { background: var(--bg-hover); }
+.player-play-btn { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--accent) !important; color: white !important; box-shadow: 0 0 14px var(--accent-glow); }
 .player-play-btn:hover { box-shadow: 0 0 20px rgba(99,102,241,0.5) !important; }
-.player-meta { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .player-time { font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .player-speed { font-size: 0.75rem; background: var(--bg-hover); padding: 3px 8px; border-radius: 4px; }
 .player-autoplay-btn { display: flex; align-items: center; color: var(--text-muted); opacity: 0.5; transition: color 0.15s, opacity 0.15s; }
@@ -615,10 +614,12 @@ img { display: block; max-width: 100%; }
   .podcast-hero { flex-direction: column; align-items: center; text-align: center; }
   .podcast-hero-artwork { width: 120px; height: 120px; }
 
-  .player-info { flex: 0 1 auto; }
-  .player-text { max-width: 120px; }
-  .player-meta .player-time,
-  .player-meta .player-speed { display: none; }
+  .player-content { gap: 10px; padding: 0 10px; }
+  .player-info { flex: 1; min-width: 0; }
+  .player-text { min-width: 0; }
+  .player-right .player-time,
+  .player-right .player-speed { display: none; }
+  .player-right { gap: 4px; }
 }
 
 @media (min-width: 769px) {

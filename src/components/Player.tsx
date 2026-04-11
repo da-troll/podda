@@ -55,15 +55,7 @@ export function Player() {
           </div>
         </div>
 
-        <div className="player-controls">
-          <button onClick={player.skipBackward} title="Back 15s"><SkipBack size={18} /></button>
-          <button onClick={player.togglePlay} className="player-play-btn">
-            {player.playing ? <Pause size={22} /> : <Play size={22} />}
-          </button>
-          <button onClick={player.skipForward} title="Forward 15s"><SkipForward size={18} /></button>
-        </div>
-
-        <div className="player-meta">
+        <div className="player-right">
           <span className="player-time">
             {formatTime(player.position)} / {formatTime(player.duration)}
           </span>
@@ -75,6 +67,11 @@ export function Player() {
           >
             <ListEnd size={16} />
           </button>
+          <button onClick={player.skipBackward} title="Back 15s" className="player-transport"><SkipBack size={18} /></button>
+          <button onClick={player.togglePlay} className="player-play-btn">
+            {player.playing ? <Pause size={22} /> : <Play size={22} />}
+          </button>
+          <button onClick={player.skipForward} title="Forward 15s" className="player-transport"><SkipForward size={18} /></button>
         </div>
       </div>
     </div>}
