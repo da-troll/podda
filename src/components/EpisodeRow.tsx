@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Check, MoreVertical, CheckCircle, RotateCcw, ListPlus, X as XIcon } from 'lucide-react';
+import { Play, Pause, Check, MoreVertical, CheckCircle, RotateCcw, ListPlus, X as XIcon, Loader2 } from 'lucide-react';
 import { usePlayerContext } from '../hooks/usePlayer';
 import { AddToPlaylistModal } from './AddToPlaylistModal';
 import type { Episode, Podcast } from '../types';
@@ -83,7 +83,7 @@ export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, o
           }
         }}
       >
-        {isPlaying && player.playing ? <Pause size={18} /> : <Play size={18} />}
+        {isPlaying && player.loading ? <Loader2 size={18} className="spin" /> : isPlaying && player.playing ? <Pause size={18} /> : <Play size={18} />}
       </button>
 
       <div className="episode-info">

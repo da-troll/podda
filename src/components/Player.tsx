@@ -1,5 +1,5 @@
 import { usePlayerContext } from '../hooks/usePlayer';
-import { Play, Pause, SkipBack, SkipForward, ListEnd, Shuffle } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, ListEnd, Shuffle, Loader2 } from 'lucide-react';
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
 
@@ -71,7 +71,7 @@ export function Player() {
             <SkipBack size={22} />
           </button>
           <button onClick={player.togglePlay} className="player-play-btn">
-            {player.playing ? <Pause size={28} /> : <Play size={28} />}
+            {player.loading ? <Loader2 size={28} className="spin" /> : player.playing ? <Pause size={28} /> : <Play size={28} />}
           </button>
           <button onClick={player.skipForward} title="Forward 15s" className="player-transport">
             <SkipForward size={22} />
