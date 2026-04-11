@@ -602,7 +602,7 @@ img { display: block; max-width: 100%; }
     border-bottom: 1px solid var(--glass-border);
     position: relative; z-index: 101;
   }
-  .app-header .brand-logo--header { flex: 1; display: block; margin: 0 auto; }
+  .app-header .brand-logo--header { margin: 0 auto; }
   .app-header::after { content: ''; width: 36px; flex-shrink: 0; }
   .app-header-title { font-weight: 700; font-size: 1.1rem; color: var(--accent); }
 
