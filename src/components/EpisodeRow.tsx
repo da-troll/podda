@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Check, MoreVertical, CheckCircle, RotateCcw, ListPlus, X as XIcon } from 'lucide-react';
 import { usePlayerContext } from '../hooks/usePlayer';
 import { AddToPlaylistModal } from './AddToPlaylistModal';
@@ -44,11 +44,28 @@ export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, o
   const player = usePlayerContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const isPlaying = player.episode?.id === episode.id;
   const completed = episode.listen_completed;
   const progress = episode.listen_position && episode.duration
     ? Math.floor((episode.listen_position / episode.duration) * 100)
     : 0;
+
+  // Close menu on outside click (works even inside backdrop-filter stacking contexts)
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e: MouseEvent | TouchEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
+  }, [menuOpen]);
 
   // Always show the menu button (playlist add is universally available)
   const hasAnyAction = onMarkPlayed || onMarkUnplayed || onRemoveFromPlaylist || !hidePlaylistAction;
@@ -91,13 +108,11 @@ export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, o
       </div>
 
       {hasAnyAction && (
-        <div className="episode-actions">
+        <div className="episode-actions" ref={menuRef}>
           <button className="btn-icon episode-menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
             <MoreVertical size={16} />
           </button>
           {menuOpen && (
-            <>
-              <div className="episode-menu-overlay" onClick={() => setMenuOpen(false)} />
               <div className="episode-menu">
                 {!hidePlaylistAction && (
                   <button onClick={() => { setMenuOpen(false); setShowAddToPlaylist(true); }}>
@@ -120,7 +135,6 @@ export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, o
                   </button>
                 )}
               </div>
-            </>
           )}
         </div>
       )}
