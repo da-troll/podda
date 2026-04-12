@@ -145,6 +145,18 @@ async function initDB() {
       CREATE INDEX IF NOT EXISTS idx_playlist_episodes_order ON playlist_episodes(playlist_id, position);
     `);
 
+    // Feedback
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS feedback (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        topic TEXT NOT NULL,
+        details TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_feedback_created ON feedback(created_at DESC);
+    `);
+
     await client.query('COMMIT');
     console.log('[podda] Database schema initialized');
   } catch (err) {

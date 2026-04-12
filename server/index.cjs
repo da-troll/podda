@@ -16,6 +16,7 @@ const searchRouter = require('./routes/search.cjs');
 const historyRouter = require('./routes/history.cjs');
 const playlistRouter = require('./routes/playlists.cjs');
 const { pollFeeds } = require('./poller.cjs');
+const feedbackRouter = require('./routes/feedback.cjs');
 
 const app = express();
 const PORT = process.env.PORT || 3150;
@@ -57,6 +58,7 @@ app.use('/api/progress', playerRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/history', historyRouter);
 app.use('/api/playlists', playlistRouter);
+app.use('/api/feedback', feedbackRouter);
 
 // Serve static frontend
 const distPath = path.join(__dirname, '..', 'dist');

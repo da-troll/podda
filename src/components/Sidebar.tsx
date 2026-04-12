@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Library, Search, Settings, Headphones, Clock, ListMusic } from 'lucide-react';
+import { FeedbackModal } from './FeedbackModal';
 import type { Page } from '../types';
 
 interface SidebarProps {
@@ -16,6 +18,8 @@ const NAV_ITEMS: { page: Page; icon: typeof Library; label: string }[] = [
 ];
 
 export function Sidebar({ currentPage, onNavigate, onClose }: SidebarProps) {
+  const [showFeedback, setShowFeedback] = useState(false);
+
   return (
     <nav className="sidebar">
       <div className="sidebar-brand">
@@ -35,6 +39,13 @@ export function Sidebar({ currentPage, onNavigate, onClose }: SidebarProps) {
           </li>
         ))}
       </ul>
+      <div className="sidebar-footer">
+        <p className="sidebar-footer-label">Bugs? Feature requests?</p>
+        <button className="section-link" onClick={() => setShowFeedback(true)}>
+          Submit feedback or a feature request
+        </button>
+      </div>
+      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
     </nav>
   );
 }
