@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AuthContext, useAuthState } from './hooks/useAuth';
 import { PlayerContext, usePlayerState } from './hooks/usePlayer';
+import { useSwipeGesture } from './hooks/useSwipeGesture';
 import { Sidebar } from './components/Sidebar';
 import { Player } from './components/Player';
 import { Login } from './pages/Login';
@@ -49,6 +50,11 @@ function AppContent() {
   const [page, setPage] = useState<Page>(parseHash);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const player = usePlayerState();
+
+  useSwipeGesture({
+    onSwipeRight: useCallback(() => setSidebarOpen(true), []),
+    onSwipeLeft: useCallback(() => setSidebarOpen(false), []),
+  });
 
   const navigate = useCallback((p: Page) => {
     window.location.hash = pageToHash(p);
