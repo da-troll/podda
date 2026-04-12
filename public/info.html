@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Podda — Download Update</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #0f1117;
+      color: #e8e8ed;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 24px;
+    }
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+    .logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 16px;
+      margin: 0 auto 20px;
+      display: block;
+    }
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; }
+    .version { font-size: 0.9rem; color: rgba(255,255,255,0.45); margin-bottom: 20px; }
+    .changelog {
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      text-align: left;
+      display: none;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #6366f1;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 14px 28px;
+      border-radius: 12px;
+      text-decoration: none;
+      width: 100%;
+      justify-content: center;
+      display: none;
+    }
+    .btn:hover { background: #5558e3; }
+    .hint {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 14px;
+      display: none;
+    }
+    .loading { color: rgba(255,255,255,0.4); font-size: 0.9rem; }
+    .error { color: #f87171; font-size: 0.9rem; display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="/icon-1024.png" alt="Podda" class="logo" />
+    <h1>Podda</h1>
+    <div class="version" id="version">Loading…</div>
+    <div class="changelog" id="changelog"></div>
+    <p class="loading" id="loading">Loading version info…</p>
+    <p class="error" id="error">Could not load version info. Try again later.</p>
+    <a class="btn" id="download-btn" href="#">Download APK</a>
+    <p class="hint" id="hint">Android only · Enable "Install unknown apps" in settings</p>
+  </div>
+
+  <script>
+    fetch('/podda-app-version.json', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(info => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('version').textContent = 'Version ' + info.version;
+        if (info.changelog) {
+          const el = document.getElementById('changelog');
+          el.textContent = info.changelog;
+          el.style.display = 'block';
+        }
+        const btn = document.getElementById('download-btn');
+        btn.href = info.url;
+        btn.style.display = 'inline-flex';
+        document.getElementById('hint').style.display = 'block';
+      })
+      .catch(() => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'block';
+      });
+  </script>
+</body>
+</html>
