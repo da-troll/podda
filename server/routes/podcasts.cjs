@@ -12,9 +12,11 @@ const parser = new RSSParser({
   },
 });
 
+const toHttps = (url) => url ? url.replace(/^http:\/\//, 'https://') : null;
+
 // Upsert a podcast and its episodes from parsed feed data
 async function upsertPodcastFromFeed(feedUrl, feed) {
-  const artwork = feed.itunesImage?.href || feed.itunesImage?.$ ?.href || feed.image?.url || null;
+  const artwork = toHttps(feed.itunesImage?.href || feed.itunesImage?.$ ?.href || feed.image?.url || null);
 
   // Upsert podcast
   const podResult = await db.query(`
@@ -52,7 +54,7 @@ async function upsertPodcastFromFeed(feedUrl, feed) {
     if (!item.enclosure?.url) continue;
 
     const guid = item.guid || fallbackGuid(item);
-    const epArtwork = item.itunesImage?.href || item.itunesImage?.$?.href || null;
+    const epArtwork = toHttps(item.itunesImage?.href || item.itunesImage?.$?.href || null);
 
     try {
       const result = await db.query(`

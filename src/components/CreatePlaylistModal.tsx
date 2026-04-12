@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { SmartPlaylistBuilder } from './SmartPlaylistBuilder';
 import type { SmartPlaylistRules } from '../types';
@@ -23,6 +23,20 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
   const [sortOrder, setSortOrder] = useState('manual');
   const [autoRemove, setAutoRemove] = useState(true);
   const [rules, setRules] = useState<SmartPlaylistRules>(DEFAULT_RULES);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Scroll modal into view when virtual keyboard opens
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      if (modalRef.current) {
+        modalRef.current.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }
+    };
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +61,7 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+      <div className="modal" ref={modalRef} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2>New Playlist</h2>
           <button className="btn-icon" onClick={onClose}><X size={20} /></button>

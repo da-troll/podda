@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
+import { EyeOff, ListPlus } from 'lucide-react';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
+import { AddToPlaylistModal } from '../components/AddToPlaylistModal';
 import type { Podcast, Episode, Page } from '../types';
+
+const CL_DISMISSED_KEY = 'podda:cl-dismissed-id';
 
 interface LibraryProps {
   onNavigate: (page: Page) => void;
@@ -9,14 +13,24 @@ interface LibraryProps {
 
 function ContinueListening({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [dismissed, setDismissed] = useState(false);
+  const [showPlaylistModal, setShowPlaylistModal] = useState(false);
 
   useEffect(() => {
     (api.getInProgress() as Promise<Episode[]>)
-      .then(setEpisodes)
+      .then(eps => {
+        setEpisodes(eps);
+        if (eps.length > 0) {
+          const dismissedId = localStorage.getItem(CL_DISMISSED_KEY);
+          if (dismissedId === String(eps[0].id)) setDismissed(true);
+        }
+      })
       .catch(console.error);
   }, []);
 
-  if (episodes.length === 0) return null;
+  if (episodes.length === 0 || dismissed) return null;
+
+  const ep = episodes[0];
 
   return (
     <div className="continue-listening">
@@ -26,9 +40,34 @@ function ContinueListening({ onNavigate }: { onNavigate: (page: Page) => void })
       </div>
       <div className="continue-listening-list">
         <div className="continue-listening-card">
-          <EpisodeRow episode={episodes[0]} showPodcast showTimeRemaining />
+          <EpisodeRow episode={ep} showPodcast showTimeRemaining hideActions />
+          <div className="cl-actions">
+            <button
+              className="cl-action-btn"
+              title="Add to playlist"
+              onClick={() => setShowPlaylistModal(true)}
+            >
+              <ListPlus size={18} />
+            </button>
+            <button
+              className="cl-action-btn"
+              title="Dismiss"
+              onClick={() => {
+                localStorage.setItem(CL_DISMISSED_KEY, String(ep.id));
+                setDismissed(true);
+              }}
+            >
+              <EyeOff size={18} />
+            </button>
+          </div>
         </div>
       </div>
+      {showPlaylistModal && (
+        <AddToPlaylistModal
+          episodeId={ep.id}
+          onClose={() => setShowPlaylistModal(false)}
+        />
+      )}
     </div>
   );
 }

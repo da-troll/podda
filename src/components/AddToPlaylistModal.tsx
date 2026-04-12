@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Plus, Check } from 'lucide-react';
 import { api } from '../api';
 import type { Playlist } from '../types';
@@ -15,12 +15,26 @@ export function AddToPlaylistModal({ episodeId, onClose }: AddToPlaylistModalPro
   const [added, setAdded] = useState<Set<number>>(new Set());
   const [newName, setNewName] = useState('');
   const [showNew, setShowNew] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     (api.getPlaylists() as Promise<Playlist[]>)
       .then(p => setPlaylists(p.filter(pl => !pl.is_smart)))
       .catch(console.error)
       .finally(() => setLoading(false));
+  }, []);
+
+  // Scroll modal into view when virtual keyboard opens
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      if (modalRef.current) {
+        modalRef.current.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }
+    };
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
   }, []);
 
   const handleAdd = async (playlistId: number) => {
@@ -51,7 +65,7 @@ export function AddToPlaylistModal({ episodeId, onClose }: AddToPlaylistModalPro
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal modal-compact" onClick={e => e.stopPropagation()}>
+      <div className="modal modal-compact" ref={modalRef} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Add to Playlist</h2>
           <button className="btn-icon" onClick={onClose}><X size={20} /></button>

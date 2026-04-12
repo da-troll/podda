@@ -37,10 +37,11 @@ interface EpisodeRowProps {
   onMarkUnplayed?: () => void;
   onRemoveFromPlaylist?: () => void;
   hidePlaylistAction?: boolean;
+  hideActions?: boolean;
   queue?: Episode[];
 }
 
-export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, onMarkPlayed, onMarkUnplayed, onRemoveFromPlaylist, hidePlaylistAction, queue }: EpisodeRowProps) {
+export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, onMarkPlayed, onMarkUnplayed, onRemoveFromPlaylist, hidePlaylistAction, hideActions, queue }: EpisodeRowProps) {
   const player = usePlayerContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
@@ -107,7 +108,7 @@ export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, o
         )}
       </div>
 
-      {hasAnyAction && (
+      {hasAnyAction && !hideActions && (
         <div className="episode-actions" ref={menuRef}>
           <button className="btn-icon episode-menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
             <MoreVertical size={16} />
