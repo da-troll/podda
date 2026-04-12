@@ -75,7 +75,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                 <textarea
                   value={details}
                   onChange={e => setDetails(e.target.value)}
-                  placeholder="e.g. The artwork for 'Lex Fridman Podcast' shows a broken image — looks like it's still loading over http://"
+                  placeholder="e.g. The artwork for 'In Our Time' by BBC shows a broken image"
                   rows={5}
                 />
               </label>
