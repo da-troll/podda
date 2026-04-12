@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 interface FeedbackModalProps {
@@ -43,7 +44,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
     }
   };
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal modal-compact" ref={modalRef} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
@@ -91,6 +92,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
