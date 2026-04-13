@@ -188,13 +188,7 @@ export function Player() {
           <button
             className="player-close-btn"
             title="Hide player"
-            onClick={() => {
-              const episodeId = player.episode?.id;
-              player.close();
-              if (episodeId != null) {
-                window.dispatchEvent(new CustomEvent('podda:player-closed', { detail: { episodeId } }));
-              }
-            }}
+            onClick={player.close}
           >
             <X size={16} />
           </button>
