@@ -196,7 +196,10 @@ img { display: block; max-width: 100%; }
 .podcast-hero-info { flex: 1; min-width: 0; }
 .podcast-hero-artwork { width: 140px; height: 140px; border-radius: var(--radius); object-fit: cover; flex-shrink: 0; }
 .podcast-hero-author { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 4px; }
-.podcast-hero-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; }
+.podcast-hero-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.podcast-hero-desc a { color: var(--accent); text-decoration: underline; }
+.podcast-hero-desc p { margin: 0 0 6px; }
+.podcast-hero-desc p:last-child { margin-bottom: 0; }
 .podcast-hero-actions { display: flex; gap: 8px; }
 .episode-list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .episode-list-header > span { font-size: 0.85rem; color: var(--text-muted); }
