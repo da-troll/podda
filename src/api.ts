@@ -76,4 +76,16 @@ export const api = {
   // Search
   search: (q: string) =>
     request(`/api/search?q=${encodeURIComponent(q)}`),
+
+  // Announcements
+  getAnnouncements: () =>
+    request('/api/announcements'),
+  getAllAnnouncements: () =>
+    request('/api/announcements/all'),
+  createAnnouncement: (data: { title: string; body?: string; type?: string; expires_at?: string }) =>
+    request('/api/announcements', { method: 'POST', body: JSON.stringify(data) }),
+  deleteAnnouncement: (id: number) =>
+    request(`/api/announcements/${id}`, { method: 'DELETE' }),
+  dismissAnnouncement: (id: number) =>
+    request(`/api/announcements/${id}/dismiss`, { method: 'POST' }),
 };

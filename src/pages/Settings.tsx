@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '../api';
 import { useAuthContext } from '../hooks/useAuth';
-import { Upload, LogOut, FileText } from 'lucide-react';
+import { Upload, LogOut, FileText, Megaphone, Trash2 } from 'lucide-react';
+import type { Announcement } from '../types';
 
 export function Settings() {
   const { user, logout } = useAuthContext();
@@ -101,6 +102,120 @@ export function Settings() {
           )}
         </div>
       </section>
+
+      {user?.isAdmin && <AdminAnnouncements />}
     </div>
+  );
+}
+
+function AdminAnnouncements() {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [type, setType] = useState<'info' | 'warning' | 'success'>('info');
+  const [expiresIn, setExpiresIn] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState('');
+
+  const load = () => {
+    (api.getAllAnnouncements() as Promise<Announcement[]>)
+      .then(setAnnouncements)
+      .catch(() => {});
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleCreate = async () => {
+    if (!title.trim()) return;
+    setCreating(true);
+    setError('');
+    try {
+      let expires_at: string | undefined;
+      if (expiresIn) {
+        const hours = parseInt(expiresIn);
+        if (!isNaN(hours) && hours > 0) {
+          expires_at = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+        }
+      }
+      await api.createAnnouncement({ title: title.trim(), body: body.trim() || undefined, type, expires_at });
+      setTitle('');
+      setBody('');
+      setType('info');
+      setExpiresIn('');
+      load();
+    } catch (err: any) {
+      setError(err.message);
+    }
+    setCreating(false);
+  };
+
+  const handleDelete = async (id: number) => {
+    await api.deleteAnnouncement(id).catch(() => {});
+    setAnnouncements(prev => prev.filter(a => a.id !== id));
+  };
+
+  return (
+    <section className="settings-section">
+      <h2>Announcements</h2>
+      <div className="settings-card">
+        <div className="announcement-form">
+          <input
+            type="text"
+            placeholder="Announcement title"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            maxLength={200}
+            className="input"
+          />
+          <textarea
+            placeholder="Details (optional)"
+            value={body}
+            onChange={e => setBody(e.target.value)}
+            maxLength={1000}
+            rows={2}
+            className="input"
+          />
+          <div className="announcement-form-row">
+            <select value={type} onChange={e => setType(e.target.value as any)} className="input announcement-select">
+              <option value="info">Info</option>
+              <option value="warning">Warning</option>
+              <option value="success">Success</option>
+            </select>
+            <input
+              type="number"
+              placeholder="Expires in hours (optional)"
+              value={expiresIn}
+              onChange={e => setExpiresIn(e.target.value)}
+              min={1}
+              className="input announcement-expires"
+            />
+            <button className="btn-primary" onClick={handleCreate} disabled={creating || !title.trim()}>
+              <Megaphone size={14} /> {creating ? 'Sending...' : 'Send'}
+            </button>
+          </div>
+          {error && <div className="error-msg">{error}</div>}
+        </div>
+
+        {announcements.length > 0 && (
+          <div className="announcement-list">
+            {announcements.map(a => (
+              <div key={a.id} className={`announcement-list-item announcement-${a.type}`}>
+                <div className="announcement-list-info">
+                  <strong>{a.title}</strong>
+                  {a.body && <span className="announcement-list-body">{a.body}</span>}
+                  <span className="announcement-list-meta">
+                    {new Date(a.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    {a.expires_at && ` · expires ${new Date(a.expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`}
+                  </span>
+                </div>
+                <button className="btn-icon" onClick={() => handleDelete(a.id)} title="Delete">
+                  <Trash2 size={15} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

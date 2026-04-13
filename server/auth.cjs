@@ -85,4 +85,13 @@ router.get('/me', async (req, res) => {
   }
 });
 
-module.exports = { router, requireAuth };
+function requireAdmin(req, res, next) {
+  // Session-based admin
+  if (req.session.userId && req.session.isAdmin) return next();
+  // API key for headless access
+  const apiKey = req.headers['x-api-key'];
+  if (apiKey && process.env.ANNOUNCEMENTS_API_KEY && apiKey === process.env.ANNOUNCEMENTS_API_KEY) return next();
+  return res.status(403).json({ error: 'Admin access required' });
+}
+
+module.exports = { router, requireAuth, requireAdmin };

@@ -3,6 +3,7 @@ import { AuthContext, useAuthState } from './hooks/useAuth';
 import { PlayerContext, usePlayerState } from './hooks/usePlayer';
 import { useSwipeGesture } from './hooks/useSwipeGesture';
 import { SwipeHint, hasSeenSwipeHint, markSwipeHintSeen } from './components/SwipeHint';
+import { AnnouncementBanner } from './components/AnnouncementBanner';
 import { Sidebar } from './components/Sidebar';
 import { Player } from './components/Player';
 import { Login } from './pages/Login';
@@ -105,6 +106,7 @@ function AppContent() {
             </button>
             <img src="/podda-logo.png" alt="podda" className="brand-logo brand-logo--header" />
           </header>
+          <AnnouncementBanner />
           <main className="main-content">
             {renderPage()}
           </main>

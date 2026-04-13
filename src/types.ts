@@ -77,6 +77,17 @@ export interface SmartPlaylistRules {
   duration_max?: number | null;
 }
 
+export interface Announcement {
+  id: number;
+  title: string;
+  body: string | null;
+  type: 'info' | 'warning' | 'success';
+  starts_at: string;
+  expires_at: string | null;
+  created_at: string;
+  created_by_username?: string;
+}
+
 export type QueueSource =
   | { type: 'podcast'; podcastId: number; sortOrder: 'newest' | 'oldest' }
   | { type: 'playlist'; playlistId: number }
