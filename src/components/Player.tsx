@@ -18,6 +18,9 @@ function clamp(v: number, min: number, max: number) {
   return Math.max(min, Math.min(max, v));
 }
 
+// How close (in % of bar width) a press must be to the thumb to grab instantly
+const GRAB_THRESHOLD_PCT = 4;
+
 function ProgressBar({ position, duration, onSeek }: { position: number; duration: number; onSeek: (t: number) => void }) {
   const barRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number>(0);
@@ -35,17 +38,36 @@ function ProgressBar({ position, duration, onSeek }: { position: number; duratio
     return clamp((clientX - rect.left) / rect.width * 100, 0, 100);
   }, []);
 
+  // Check if press is near the thumb — if so, grab immediately
+  const isNearThumb = useCallback((clientX: number) => {
+    const bar = barRef.current;
+    if (!bar) return false;
+    const rect = bar.getBoundingClientRect();
+    const thumbPx = (livePct / 100) * rect.width;
+    const pressPx = clientX - rect.left;
+    // Use a generous pixel threshold (20px) or percentage, whichever is larger
+    const thresholdPx = Math.max(20, (GRAB_THRESHOLD_PCT / 100) * rect.width);
+    return Math.abs(pressPx - thumbPx) <= thresholdPx;
+  }, [livePct]);
+
+  const startScrub = useCallback((pct: number) => {
+    scrubbingRef.current = true;
+    setScrubbing(true);
+    setScrubPct(pct);
+  }, []);
+
   // --- Touch scrubbing ---
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     const touch = e.touches[0];
     const pct = getPct(touch.clientX);
 
-    longPressTimer.current = window.setTimeout(() => {
-      scrubbingRef.current = true;
-      setScrubbing(true);
-      setScrubPct(pct);
-    }, LONG_PRESS_MS);
-  }, [getPct]);
+    if (isNearThumb(touch.clientX)) {
+      // Grab immediately — no delay
+      startScrub(pct);
+    } else {
+      longPressTimer.current = window.setTimeout(() => startScrub(pct), LONG_PRESS_MS);
+    }
+  }, [getPct, isNearThumb, startScrub]);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     if (!scrubbingRef.current) {
@@ -70,12 +92,12 @@ function ProgressBar({ position, duration, onSeek }: { position: number; duratio
     if (e.button !== 0) return;
     const pct = getPct(e.clientX);
 
-    longPressTimer.current = window.setTimeout(() => {
-      scrubbingRef.current = true;
-      setScrubbing(true);
-      setScrubPct(pct);
-    }, LONG_PRESS_MS);
-  }, [getPct]);
+    if (isNearThumb(e.clientX)) {
+      startScrub(pct);
+    } else {
+      longPressTimer.current = window.setTimeout(() => startScrub(pct), LONG_PRESS_MS);
+    }
+  }, [getPct, isNearThumb, startScrub]);
 
   useEffect(() => {
     if (!scrubbing) return;
