@@ -326,4 +326,4 @@ Vite proxies `/api` requests to `localhost:18892` during development.
 
 ## License
 
-Private. Trollefsen household use only.
+MIT — see [LICENSE](LICENSE) for details.
