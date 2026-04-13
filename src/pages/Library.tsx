@@ -40,7 +40,7 @@ function ContinueListening({ onNavigate }: { onNavigate: (page: Page) => void })
       </div>
       <div className="continue-listening-list">
         <div className="continue-listening-card">
-          <EpisodeRow episode={ep} showPodcast showTimeRemaining hideActions />
+          <EpisodeRow episode={ep} showPodcast showTimeRemaining hideActions queue={episodes.slice(1)} />
           <div className="cl-actions">
             <button
               className="cl-action-btn"
@@ -146,8 +146,8 @@ export function Library({ onNavigate }: LibraryProps) {
           {recent.length === 0 ? (
             <div className="empty-state"><p>No recent episodes.</p></div>
           ) : (
-            recent.map(ep => (
-              <EpisodeRow key={ep.id} episode={ep} showPodcast />
+            recent.map((ep, idx) => (
+              <EpisodeRow key={ep.id} episode={ep} showPodcast queue={recent.slice(idx + 1)} />
             ))
           )}
         </div>

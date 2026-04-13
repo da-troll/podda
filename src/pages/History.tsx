@@ -74,11 +74,12 @@ export function History() {
             <p>{filter === 'all' ? 'No listening history yet. Start playing a podcast!' : `No ${filter} episodes.`}</p>
           </div>
         )}
-        {episodes.map(ep => (
+        {episodes.map((ep, idx) => (
           <EpisodeRow
             key={ep.id}
             episode={ep}
             showPodcast
+            queue={episodes.slice(idx + 1)}
             onMarkPlayed={!ep.listen_completed ? () => handleMarkPlayed(ep.id) : undefined}
             onMarkUnplayed={ep.listen_completed ? () => handleMarkUnplayed(ep.id) : undefined}
           />
