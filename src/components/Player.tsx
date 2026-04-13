@@ -3,7 +3,7 @@ import { usePlayerContext } from '../hooks/usePlayer';
 import { Play, Pause, SkipBack, SkipForward, ListEnd, Shuffle, Loader2 } from 'lucide-react';
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
-const LONG_PRESS_MS = 300;
+const LONG_PRESS_MS = 150;
 
 function formatTime(s: number): string {
   if (!s || !isFinite(s)) return '0:00';
@@ -49,7 +49,6 @@ function ProgressBar({ position, duration, onSeek }: { position: number; duratio
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     if (!scrubbingRef.current) {
-      // If finger moves before long-press fires, cancel it (user is scrolling)
       clearTimeout(longPressTimer.current);
       return;
     }
@@ -68,7 +67,6 @@ function ProgressBar({ position, duration, onSeek }: { position: number; duratio
 
   // --- Mouse scrubbing (desktop) ---
   const onMouseDown = useCallback((e: React.MouseEvent) => {
-    // Left button only
     if (e.button !== 0) return;
     const pct = getPct(e.clientX);
 
@@ -92,7 +90,6 @@ function ProgressBar({ position, duration, onSeek }: { position: number; duratio
       if (scrubbingRef.current) {
         scrubbingRef.current = false;
         setScrubbing(false);
-        // Read the latest scrubPct from the ref-backed state via functional update
         setScrubPct(prev => {
           if (duration > 0) onSeek((prev / 100) * duration);
           return prev;
@@ -108,12 +105,10 @@ function ProgressBar({ position, duration, onSeek }: { position: number; duratio
     };
   }, [scrubbing, duration, onSeek, getPct]);
 
-  // Cancel long-press if mouse leaves before it fires (non-scrubbing)
   const onMouseLeave = useCallback(() => {
     if (!scrubbingRef.current) clearTimeout(longPressTimer.current);
   }, []);
 
-  // Click to seek (only if we didn't just finish scrubbing)
   const onClick = useCallback((e: React.MouseEvent) => {
     if (scrubbingRef.current) return;
     const pct = getPct(e.clientX);
@@ -133,9 +128,7 @@ function ProgressBar({ position, duration, onSeek }: { position: number; duratio
       onTouchCancel={onTouchEnd}
     >
       <div className="player-progress-fill" style={{ width: `${displayPct}%` }} />
-      {scrubbing && (
-        <div className="player-scrub-thumb" style={{ left: `${displayPct}%` }} />
-      )}
+      <div className={`player-scrub-thumb ${scrubbing ? 'active' : ''}`} style={{ left: `${displayPct}%` }} />
     </div>
   );
 }
@@ -157,9 +150,7 @@ export function Player() {
     <audio ref={player.audioRef} />
 
     {player.episode && <div className="player">
-      <ProgressBar position={player.position} duration={player.duration} onSeek={player.seek} />
-
-      <div className="player-content">
+      <div className="player-top">
         <div className="player-info">
           {artwork && <img src={artwork} alt="" className="player-artwork" />}
           <div className="player-text">
@@ -171,37 +162,42 @@ export function Player() {
               }
             </div>
           </div>
-          <span className="player-time">
-            {formatTime(player.position)} / {formatTime(player.duration)}
-          </span>
           <button onClick={cycleSpeed} className="player-speed">{player.speed}x</button>
         </div>
+      </div>
 
-        <div className="player-controls">
-          <button
-            onClick={player.toggleShuffle}
-            className={`player-shuffle-btn ${player.shuffle ? 'active' : ''}`}
-            title={player.shuffle ? 'Shuffle on' : 'Shuffle off'}
-          >
-            <Shuffle size={20} />
-          </button>
-          <button onClick={player.skipBackward} title="Back 15s" className="player-transport">
-            <SkipBack size={22} />
-          </button>
-          <button onClick={player.togglePlay} className="player-play-btn">
-            {player.loading ? <Loader2 size={28} className="spin" /> : player.playing ? <Pause size={28} /> : <Play size={28} />}
-          </button>
-          <button onClick={player.skipForward} title="Forward 15s" className="player-transport">
-            <SkipForward size={22} />
-          </button>
-          <button
-            onClick={player.toggleAutoPlay}
-            className={`player-autoplay-btn ${player.autoPlay ? 'active' : ''}`}
-            title={player.autoPlay ? 'Auto-play on' : 'Auto-play off'}
-          >
-            <ListEnd size={20} />
-          </button>
+      <div className="player-scrub-area">
+        <ProgressBar position={player.position} duration={player.duration} onSeek={player.seek} />
+        <div className="player-times">
+          <span>{formatTime(player.position)}</span>
+          <span>{formatTime(player.duration)}</span>
         </div>
+      </div>
+
+      <div className="player-controls">
+        <button
+          onClick={player.toggleShuffle}
+          className={`player-shuffle-btn ${player.shuffle ? 'active' : ''}`}
+          title={player.shuffle ? 'Shuffle on' : 'Shuffle off'}
+        >
+          <Shuffle size={20} />
+        </button>
+        <button onClick={player.skipBackward} title="Back 15s" className="player-transport">
+          <SkipBack size={22} />
+        </button>
+        <button onClick={player.togglePlay} className="player-play-btn">
+          {player.loading ? <Loader2 size={28} className="spin" /> : player.playing ? <Pause size={28} /> : <Play size={28} />}
+        </button>
+        <button onClick={player.skipForward} title="Forward 15s" className="player-transport">
+          <SkipForward size={22} />
+        </button>
+        <button
+          onClick={player.toggleAutoPlay}
+          className={`player-autoplay-btn ${player.autoPlay ? 'active' : ''}`}
+          title={player.autoPlay ? 'Auto-play on' : 'Auto-play off'}
+        >
+          <ListEnd size={20} />
+        </button>
       </div>
     </div>}
     </>
