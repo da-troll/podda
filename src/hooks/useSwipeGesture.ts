@@ -47,7 +47,8 @@ export function useSwipeGesture({
       // Must meet minimum velocity
       if (dt === 0 || absDx / dt < minVelocity) return;
 
-      if (dx > 0 && startX < edgeZone && onSwipeRight) {
+      const edgePx = edgeZone <= 1 ? edgeZone * window.innerWidth : edgeZone;
+      if (dx > 0 && startX < edgePx && onSwipeRight) {
         onSwipeRight();
       } else if (dx < 0 && onSwipeLeft) {
         onSwipeLeft();

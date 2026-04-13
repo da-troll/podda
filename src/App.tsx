@@ -54,6 +54,7 @@ function AppContent() {
   useSwipeGesture({
     onSwipeRight: useCallback(() => setSidebarOpen(true), []),
     onSwipeLeft: useCallback(() => setSidebarOpen(false), []),
+    edgeZone: 0.5,
   });
 
   const navigate = useCallback((p: Page) => {
