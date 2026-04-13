@@ -158,6 +158,45 @@ router.post('/subscribe', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/podcasts/fetch — ensure podcast is in DB without subscribing; returns { id }
+router.post('/fetch', requireAuth, async (req, res) => {
+  const { feedUrl } = req.body;
+  if (!feedUrl) return res.status(400).json({ error: 'feedUrl required' });
+  try {
+    // Fast path: already in DB
+    const existing = await db.query('SELECT id FROM podcasts WHERE feed_url = $1', [feedUrl]);
+    if (existing.rows[0]) return res.json({ id: existing.rows[0].id });
+
+    // Fetch and upsert (no subscription)
+    const { xml, finalUrl, redirected } = await fetchFeed(feedUrl);
+    const feed = await parser.parseString(xml);
+    const canonicalUrl = feed.itunesNewFeedUrl || (redirected ? finalUrl : feedUrl);
+    const { podcastId } = await upsertPodcastFromFeed(canonicalUrl, feed);
+    res.json({ id: podcastId });
+  } catch (err) {
+    console.error('[podcasts] Fetch error:', err.message);
+    res.status(500).json({ error: `Failed to fetch podcast: ${err.message}` });
+  }
+});
+
+// GET /api/podcasts/:id — single podcast with is_subscribed flag
+router.get('/:id', requireAuth, async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: 'invalid id' });
+  try {
+    const result = await db.query(`
+      SELECT p.*,
+        (SELECT COUNT(*) FROM episodes e WHERE e.podcast_id = p.id)::int AS episode_count,
+        EXISTS(SELECT 1 FROM subscriptions s WHERE s.user_id = $1 AND s.podcast_id = p.id) AS is_subscribed
+      FROM podcasts p WHERE p.id = $2
+    `, [req.session.userId, id]);
+    if (!result.rows[0]) return res.status(404).json({ error: 'Podcast not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch podcast' });
+  }
+});
+
 // DELETE /api/podcasts/:id/unsubscribe
 router.delete('/:id/unsubscribe', requireAuth, async (req, res) => {
   try {

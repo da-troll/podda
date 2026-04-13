@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
 import { ConfirmModal } from '../components/ConfirmModal';
-import { ArrowLeft, RefreshCw, Trash2 } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Trash2, Plus, Loader } from 'lucide-react';
 import type { Podcast, Episode, Page, QueueSource } from '../types';
 
 const PAGE_SIZE = 50;
@@ -21,15 +21,16 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
   const [showUnsubConfirm, setShowUnsubConfirm] = useState(false);
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
 
   const load = () => {
     Promise.all([
-      api.getPodcasts() as Promise<Podcast[]>,
+      api.getPodcast(podcastId) as Promise<Podcast>,
       api.getEpisodes(podcastId, PAGE_SIZE, 0) as Promise<{ episodes: Episode[]; total: number }>,
-    ]).then(([pods, data]) => {
-      setPodcast(pods.find(p => p.id === podcastId) || null);
+    ]).then(([pod, data]) => {
+      setPodcast(pod);
       setEpisodes(data.episodes);
       setTotal(data.total);
     }).catch(console.error)
@@ -62,6 +63,23 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
     setRefreshing(false);
   };
 
+  const handleSubscribe = async () => {
+    if (!podcast) return;
+    setSubscribing(true);
+    try {
+      await api.subscribe(podcast.feed_url);
+      setPodcast(prev => prev ? { ...prev, is_subscribed: true } : prev);
+    } catch (err) {
+      console.error(err);
+    }
+    setSubscribing(false);
+  };
+
+  const handleUnsubscribe = async () => {
+    await api.unsubscribe(podcastId);
+    onNavigate({ type: 'library' });
+  };
+
   const sortedEpisodes = useMemo(() => {
     const sorted = [...episodes].sort((a, b) => {
       const da = a.pub_date ? new Date(a.pub_date).getTime() : 0;
@@ -74,11 +92,6 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
   const queueSource = useMemo<QueueSource>(() => ({
     type: 'podcast', podcastId, sortOrder,
   }), [podcastId, sortOrder]);
-
-  const handleUnsubscribe = async () => {
-    await api.unsubscribe(podcastId);
-    onNavigate({ type: 'library' });
-  };
 
   const hasMore = episodes.length < total;
 
@@ -104,9 +117,15 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
             <p className="podcast-hero-desc">{podcast.description.slice(0, 300)}</p>
           )}
           <div className="podcast-hero-actions">
-            <button className="btn-danger" onClick={() => setShowUnsubConfirm(true)}>
-              <Trash2 size={14} /> Unsubscribe
-            </button>
+            {podcast.is_subscribed ? (
+              <button className="btn-danger" onClick={() => setShowUnsubConfirm(true)}>
+                <Trash2 size={14} /> Unsubscribe
+              </button>
+            ) : (
+              <button className="btn-primary" onClick={handleSubscribe} disabled={subscribing}>
+                {subscribing ? <><Loader size={14} className="spinning" /> Subscribing…</> : <><Plus size={14} /> Subscribe</>}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -122,9 +141,11 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
             <option value="newest">Newest first</option>
             <option value="oldest">Oldest first</option>
           </select>
-          <button className="btn-icon" onClick={handleRefresh} disabled={refreshing} title="Refresh">
-            <RefreshCw size={16} className={refreshing ? 'spinning' : ''} />
-          </button>
+          {podcast.is_subscribed && (
+            <button className="btn-icon" onClick={handleRefresh} disabled={refreshing} title="Refresh">
+              <RefreshCw size={16} className={refreshing ? 'spinning' : ''} />
+            </button>
+          )}
         </div>
       </div>
 

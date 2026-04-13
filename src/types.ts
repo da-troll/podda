@@ -20,6 +20,7 @@ export interface Podcast {
   last_fetched: string | null;
   episode_count?: number;
   completed_count?: number;
+  is_subscribed?: boolean;
 }
 
 export interface Episode {

@@ -22,8 +22,10 @@ export const api = {
   // Podcasts
   getPodcasts: () =>
     request('/api/podcasts'),
-  findByFeed: (feedUrl: string) =>
-    request(`/api/podcasts/by-feed?url=${encodeURIComponent(feedUrl)}`),
+  getPodcast: (id: number) =>
+    request(`/api/podcasts/${id}`),
+  fetchPodcast: (feedUrl: string) =>
+    request('/api/podcasts/fetch', { method: 'POST', body: JSON.stringify({ feedUrl }) }),
   subscribe: (feedUrl: string) =>
     request('/api/podcasts/subscribe', { method: 'POST', body: JSON.stringify({ feedUrl }) }),
   unsubscribe: (id: number) =>
