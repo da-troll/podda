@@ -16,6 +16,7 @@ export function Discover() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    (document.activeElement as HTMLElement)?.blur();
     if (query.trim().length < 2) return;
 
     setSearching(true);
