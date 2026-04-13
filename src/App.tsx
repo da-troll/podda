@@ -3,6 +3,7 @@ import { AuthContext, useAuthState } from './hooks/useAuth';
 import { PlayerContext, usePlayerState } from './hooks/usePlayer';
 import { useSwipeGesture } from './hooks/useSwipeGesture';
 import { SwipeHint, hasSeenSwipeHint, markSwipeHintSeen } from './components/SwipeHint';
+import { AnnouncementBanner } from './components/AnnouncementBanner';
 import { Sidebar } from './components/Sidebar';
 import { Player } from './components/Player';
 import { Login } from './pages/Login';
@@ -50,7 +51,7 @@ function pageToHash(page: Page): string {
 function AppContent() {
   const [page, setPage] = useState<Page>(parseHash);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showSwipeHint, setShowSwipeHint] = useState(() => !hasSeenSwipeHint());
+  const [showSwipeHint, setShowSwipeHint] = useState(() => 'ontouchstart' in window && !hasSeenSwipeHint());
   const player = usePlayerState();
 
   const dismissHint = useCallback(() => {
@@ -105,6 +106,7 @@ function AppContent() {
             </button>
             <img src="/podda-logo.png" alt="podda" className="brand-logo brand-logo--header" />
           </header>
+          <AnnouncementBanner />
           <main className="main-content">
             {renderPage()}
           </main>

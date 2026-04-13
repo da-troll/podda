@@ -157,6 +157,29 @@ async function initDB() {
       CREATE INDEX IF NOT EXISTS idx_feedback_created ON feedback(created_at DESC);
     `);
 
+    // Announcements (admin-created notifications for all users)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS announcements (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(200) NOT NULL,
+        body VARCHAR(1000),
+        type VARCHAR(20) DEFAULT 'info',
+        starts_at TIMESTAMPTZ DEFAULT NOW(),
+        expires_at TIMESTAMPTZ,
+        created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS announcement_dismissals (
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        announcement_id INTEGER NOT NULL REFERENCES announcements(id) ON DELETE CASCADE,
+        dismissed_at TIMESTAMPTZ DEFAULT NOW(),
+        PRIMARY KEY (user_id, announcement_id)
+      );
+    `);
+
     await client.query('COMMIT');
     console.log('[podda] Database schema initialized');
   } catch (err) {
