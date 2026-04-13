@@ -51,7 +51,7 @@ function pageToHash(page: Page): string {
 function AppContent() {
   const [page, setPage] = useState<Page>(parseHash);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showSwipeHint, setShowSwipeHint] = useState(() => !hasSeenSwipeHint());
+  const [showSwipeHint, setShowSwipeHint] = useState(() => 'ontouchstart' in window && !hasSeenSwipeHint());
   const player = usePlayerState();
 
   const dismissHint = useCallback(() => {
