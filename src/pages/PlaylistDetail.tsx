@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
 import { SmartPlaylistBuilder, filterSummary } from '../components/SmartPlaylistBuilder';
 import { ArrowLeft, Trash2, GripVertical, SkipForward, ListEnd, Settings2, Zap } from 'lucide-react';
 import { ConfirmModal } from '../components/ConfirmModal';
-import type { Playlist, Episode, SmartPlaylistRules, Page } from '../types';
+import type { Playlist, Episode, SmartPlaylistRules, Page, QueueSource } from '../types';
 
 interface PlaylistDetailProps {
   playlistId: number;
@@ -31,6 +31,10 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const dragItem = useRef<number | null>(null);
   const dragOver = useRef<number | null>(null);
+
+  const queueSource = useMemo<QueueSource>(() => ({
+    type: 'playlist', playlistId,
+  }), [playlistId]);
 
   const load = useCallback(async () => {
     try {
@@ -221,6 +225,7 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
                   episode={ep}
                   showPodcast
                   queue={episodes.slice(index + 1)}
+                  queueSource={queueSource}
                   onMarkPlayed={!ep.listen_completed ? async () => {
                     await api.markPlayed(ep.id);
                     load();

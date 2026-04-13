@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Check, MoreVertical, CheckCircle, RotateCcw, ListPlus, X as XIcon, Loader2 } from 'lucide-react';
 import { usePlayerContext } from '../hooks/usePlayer';
 import { AddToPlaylistModal } from './AddToPlaylistModal';
-import type { Episode, Podcast } from '../types';
+import type { Episode, Podcast, QueueSource } from '../types';
 
 function formatDuration(secs: number | null): string {
   if (!secs) return '';
@@ -39,9 +39,10 @@ interface EpisodeRowProps {
   hidePlaylistAction?: boolean;
   hideActions?: boolean;
   queue?: Episode[];
+  queueSource?: QueueSource;
 }
 
-export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, onMarkPlayed, onMarkUnplayed, onRemoveFromPlaylist, hidePlaylistAction, hideActions, queue }: EpisodeRowProps) {
+export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, onMarkPlayed, onMarkUnplayed, onRemoveFromPlaylist, hidePlaylistAction, hideActions, queue, queueSource }: EpisodeRowProps) {
   const player = usePlayerContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
@@ -79,7 +80,7 @@ export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, o
           if (isPlaying) {
             player.togglePlay();
           } else {
-            if (queue) player.setQueue(queue);
+            if (queue) player.setQueue(queue, queueSource);
             player.play(episode, podcast);
           }
         }}
