@@ -30,6 +30,7 @@ interface PlayerContextType extends PlayerState {
   setQueue: (episodes: Episode[], source?: QueueSource) => void;
   toggleAutoPlay: () => void;
   toggleShuffle: () => void;
+  close: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | null>(null);
@@ -337,6 +338,27 @@ export function usePlayerState(): PlayerContextType {
     navigator.mediaSession.setActionHandler('seekforward', skipForward);
   }, [togglePlay, skipBackward, skipForward]);
 
+  const close = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.src = '';
+    }
+    queueRef.current = [];
+    queueSourceRef.current = null;
+    try { localStorage.removeItem(QUEUE_SOURCE_KEY); } catch {}
+    setState(prev => ({
+      ...prev,
+      episode: null,
+      podcast: null,
+      playing: false,
+      position: 0,
+      duration: 0,
+      loading: false,
+      queue: [],
+    }));
+  }, []);
+
   return {
     ...state,
     audioRef,
@@ -350,6 +372,7 @@ export function usePlayerState(): PlayerContextType {
     setQueue,
     toggleAutoPlay,
     toggleShuffle,
+    close,
   };
 }
 
