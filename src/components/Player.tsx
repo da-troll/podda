@@ -1,7 +1,9 @@
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { usePlayerContext } from '../hooks/usePlayer';
 import { Play, Pause, SkipBack, SkipForward, ListEnd, Shuffle, Loader2 } from 'lucide-react';
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
+const LONG_PRESS_MS = 300;
 
 function formatTime(s: number): string {
   if (!s || !isFinite(s)) return '0:00';
@@ -12,11 +14,136 @@ function formatTime(s: number): string {
   return `${m}:${sec.toString().padStart(2, '0')}`;
 }
 
+function clamp(v: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, v));
+}
+
+function ProgressBar({ position, duration, onSeek }: { position: number; duration: number; onSeek: (t: number) => void }) {
+  const barRef = useRef<HTMLDivElement>(null);
+  const longPressTimer = useRef<number>(0);
+  const [scrubbing, setScrubbing] = useState(false);
+  const [scrubPct, setScrubPct] = useState(0);
+  const scrubbingRef = useRef(false);
+
+  const livePct = duration > 0 ? (position / duration) * 100 : 0;
+  const displayPct = scrubbing ? scrubPct : livePct;
+
+  const getPct = useCallback((clientX: number) => {
+    const bar = barRef.current;
+    if (!bar) return 0;
+    const rect = bar.getBoundingClientRect();
+    return clamp((clientX - rect.left) / rect.width * 100, 0, 100);
+  }, []);
+
+  // --- Touch scrubbing ---
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    const pct = getPct(touch.clientX);
+
+    longPressTimer.current = window.setTimeout(() => {
+      scrubbingRef.current = true;
+      setScrubbing(true);
+      setScrubPct(pct);
+    }, LONG_PRESS_MS);
+  }, [getPct]);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!scrubbingRef.current) {
+      // If finger moves before long-press fires, cancel it (user is scrolling)
+      clearTimeout(longPressTimer.current);
+      return;
+    }
+    e.preventDefault();
+    setScrubPct(getPct(e.touches[0].clientX));
+  }, [getPct]);
+
+  const onTouchEnd = useCallback(() => {
+    clearTimeout(longPressTimer.current);
+    if (scrubbingRef.current) {
+      scrubbingRef.current = false;
+      setScrubbing(false);
+      if (duration > 0) onSeek((scrubPct / 100) * duration);
+    }
+  }, [duration, scrubPct, onSeek]);
+
+  // --- Mouse scrubbing (desktop) ---
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    // Left button only
+    if (e.button !== 0) return;
+    const pct = getPct(e.clientX);
+
+    longPressTimer.current = window.setTimeout(() => {
+      scrubbingRef.current = true;
+      setScrubbing(true);
+      setScrubPct(pct);
+    }, LONG_PRESS_MS);
+  }, [getPct]);
+
+  useEffect(() => {
+    if (!scrubbing) return;
+
+    const onMove = (e: MouseEvent) => {
+      if (!scrubbingRef.current) return;
+      setScrubPct(getPct(e.clientX));
+    };
+
+    const onUp = () => {
+      clearTimeout(longPressTimer.current);
+      if (scrubbingRef.current) {
+        scrubbingRef.current = false;
+        setScrubbing(false);
+        // Read the latest scrubPct from the ref-backed state via functional update
+        setScrubPct(prev => {
+          if (duration > 0) onSeek((prev / 100) * duration);
+          return prev;
+        });
+      }
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, [scrubbing, duration, onSeek, getPct]);
+
+  // Cancel long-press if mouse leaves before it fires (non-scrubbing)
+  const onMouseLeave = useCallback(() => {
+    if (!scrubbingRef.current) clearTimeout(longPressTimer.current);
+  }, []);
+
+  // Click to seek (only if we didn't just finish scrubbing)
+  const onClick = useCallback((e: React.MouseEvent) => {
+    if (scrubbingRef.current) return;
+    const pct = getPct(e.clientX);
+    if (duration > 0) onSeek((pct / 100) * duration);
+  }, [getPct, duration, onSeek]);
+
+  return (
+    <div
+      ref={barRef}
+      className={`player-progress-bar ${scrubbing ? 'scrubbing' : ''}`}
+      onClick={onClick}
+      onMouseDown={onMouseDown}
+      onMouseLeave={onMouseLeave}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={onTouchEnd}
+    >
+      <div className="player-progress-fill" style={{ width: `${displayPct}%` }} />
+      {scrubbing && (
+        <div className="player-scrub-thumb" style={{ left: `${displayPct}%` }} />
+      )}
+    </div>
+  );
+}
+
 export function Player() {
   const player = usePlayerContext();
 
   const artwork = player.episode?.artwork_url || player.episode?.podcast_artwork_url || player.podcast?.artwork_url;
-  const progress = player.duration > 0 ? (player.position / player.duration) * 100 : 0;
   const upNext = player.autoPlay && player.queue.length > 0 ? player.queue[0] : null;
 
   const cycleSpeed = () => {
@@ -30,16 +157,7 @@ export function Player() {
     <audio ref={player.audioRef} />
 
     {player.episode && <div className="player">
-      <div
-        className="player-progress-bar"
-        onClick={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          const pct = (e.clientX - rect.left) / rect.width;
-          player.seek(pct * player.duration);
-        }}
-      >
-        <div className="player-progress-fill" style={{ width: `${progress}%` }} />
-      </div>
+      <ProgressBar position={player.position} duration={player.duration} onSeek={player.seek} />
 
       <div className="player-content">
         <div className="player-info">

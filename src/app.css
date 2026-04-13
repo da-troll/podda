@@ -310,8 +310,19 @@ img { display: block; max-width: 100%; }
   z-index: 50;
 }
 .player audio { display: none; }
-.player-progress-bar { height: 3px; background: rgba(255,255,255,0.06); cursor: pointer; }
+.player-progress-bar {
+  height: 3px; background: rgba(255,255,255,0.06); cursor: pointer;
+  position: relative; transition: height 0.15s ease; touch-action: none;
+}
+.player-progress-bar.scrubbing { height: 5px; }
 .player-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); transition: width 0.3s linear; }
+.player-progress-bar.scrubbing .player-progress-fill { transition: none; }
+.player-scrub-thumb {
+  position: absolute; top: 50%; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow), 0 0 0 3px rgba(99, 102, 241, 0.25);
+  transform: translate(-50%, -50%); pointer-events: none;
+}
 .player-content { display: flex; align-items: center; height: calc(var(--player-h) - 3px); padding: 0 16px; gap: 16px; }
 .player-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
 .player-artwork { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
