@@ -40,9 +40,10 @@ interface EpisodeRowProps {
   hideActions?: boolean;
   queue?: Episode[];
   queueSource?: QueueSource;
+  onPlay?: () => void;
 }
 
-export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, onMarkPlayed, onMarkUnplayed, onRemoveFromPlaylist, hidePlaylistAction, hideActions, queue, queueSource }: EpisodeRowProps) {
+export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, onMarkPlayed, onMarkUnplayed, onRemoveFromPlaylist, hidePlaylistAction, hideActions, queue, queueSource, onPlay }: EpisodeRowProps) {
   const player = usePlayerContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
@@ -82,6 +83,7 @@ export function EpisodeRow({ episode, podcast, showPodcast, showTimeRemaining, o
           } else {
             if (queue) player.setQueue(queue, queueSource);
             player.play(episode, podcast);
+            onPlay?.();
           }
         }}
       >

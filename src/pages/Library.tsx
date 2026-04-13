@@ -40,7 +40,18 @@ function ContinueListening({ onNavigate }: { onNavigate: (page: Page) => void })
       </div>
       <div className="continue-listening-list">
         <div className="continue-listening-card">
-          <EpisodeRow episode={ep} showPodcast showTimeRemaining hideActions queue={episodes.slice(1)} queueSource={{ type: 'continue' }} />
+          <EpisodeRow
+            episode={ep}
+            showPodcast
+            showTimeRemaining
+            hideActions
+            queue={episodes.slice(1)}
+            queueSource={{ type: 'continue' }}
+            onPlay={() => {
+              localStorage.setItem(CL_DISMISSED_KEY, String(ep.id));
+              setDismissed(true);
+            }}
+          />
           <div className="cl-actions">
             <button
               className="cl-action-btn"
