@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import DOMPurify from 'dompurify';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -114,7 +115,10 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
         <div className="podcast-hero-info">
           {podcast.author && <div className="podcast-hero-author">{podcast.author}</div>}
           {podcast.description && (
-            <p className="podcast-hero-desc">{podcast.description.slice(0, 300)}</p>
+            <div
+              className="podcast-hero-desc"
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(podcast.description) }}
+            />
           )}
           <div className="podcast-hero-actions">
             {podcast.is_subscribed ? (
