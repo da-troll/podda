@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import { api } from '../api';
-import { Search, Plus, Check, Loader, X } from 'lucide-react';
-import type { SearchResult } from '../types';
+import { Search, Plus, Check, Loader, X, Link } from 'lucide-react';
+import type { SearchResult, Page } from '../types';
 
-export function Discover() {
+interface DiscoverProps {
+  onNavigate: (page: Page) => void;
+}
+
+export function Discover({ onNavigate }: DiscoverProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [subscribing, setSubscribing] = useState<string | null>(null);
-  const [subscribed, setSubscribed] = useState<Set<string>>(new Set());
+  // Map feedUrl → podcastId for navigation
+  const [subscribedIds, setSubscribedIds] = useState<Map<string, number>>(new Map());
   const [error, setError] = useState('');
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [urlInput, setUrlInput] = useState('');
@@ -30,15 +35,32 @@ export function Discover() {
     setSearching(false);
   };
 
-  const handleSubscribe = async (feedUrl: string) => {
+  const handleSubscribe = async (feedUrl: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     setSubscribing(feedUrl);
     try {
-      await api.subscribe(feedUrl);
-      setSubscribed(prev => new Set(prev).add(feedUrl));
+      const data = await api.subscribe(feedUrl) as { podcast: { id: number } };
+      setSubscribedIds(prev => new Map(prev).set(feedUrl, data.podcast.id));
     } catch (err: any) {
       setError(`Failed to subscribe: ${err.message}`);
     }
     setSubscribing(null);
+  };
+
+  const handleCardClick = async (feedUrl: string) => {
+    // If we already have the id from this session, navigate directly
+    const knownId = subscribedIds.get(feedUrl);
+    if (knownId != null) {
+      onNavigate({ type: 'podcast', id: knownId });
+      return;
+    }
+    // Try to find it via the server (may already be subscribed from a prior session)
+    try {
+      const data = await api.findByFeed(feedUrl) as { id: number };
+      onNavigate({ type: 'podcast', id: data.id });
+    } catch {
+      // Not subscribed yet — do nothing, user can use the Subscribe button
+    }
   };
 
   const handleUrlSubscribe = async () => {
@@ -50,8 +72,8 @@ export function Discover() {
     setUrlError('');
     setSubscribing(url);
     try {
-      await api.subscribe(url);
-      setSubscribed(prev => new Set(prev).add(url));
+      const data = await api.subscribe(url) as { podcast: { id: number } };
+      setSubscribedIds(prev => new Map(prev).set(url, data.podcast.id));
       setShowUrlModal(false);
       setUrlInput('');
     } catch (err: any) {
@@ -70,8 +92,8 @@ export function Discover() {
     <div className="page discover">
       <div className="page-header">
         <h1>Discover</h1>
-        <button className="btn-primary" onClick={() => setShowUrlModal(true)}>
-          <Plus size={16} /> Subscribe by URL
+        <button className="btn-secondary" onClick={() => setShowUrlModal(true)}>
+          <Link size={15} /> RSS URL
         </button>
       </div>
 
@@ -99,29 +121,36 @@ export function Discover() {
       {error && <div className="error-msg">{error}</div>}
 
       <div className="search-results">
-        {results.map(r => (
-          <div key={r.feedUrl} className="search-result-card">
-            {r.artworkUrl && <img src={r.artworkUrl} alt="" className="search-result-artwork" loading="lazy" />}
-            <div className="search-result-info">
-              <div className="search-result-name">{r.name}</div>
-              <div className="search-result-artist">{r.artist}</div>
-              {r.genre && <div className="search-result-genre">{r.genre} · {r.trackCount} episodes</div>}
-            </div>
-            <button
-              className={`btn-subscribe ${subscribed.has(r.feedUrl) ? 'subscribed' : ''}`}
-              onClick={() => handleSubscribe(r.feedUrl)}
-              disabled={subscribed.has(r.feedUrl) || subscribing === r.feedUrl}
+        {results.map(r => {
+          const isSubscribed = subscribedIds.has(r.feedUrl);
+          return (
+            <div
+              key={r.feedUrl}
+              className={`search-result-card ${isSubscribed ? 'clickable' : ''}`}
+              onClick={() => handleCardClick(r.feedUrl)}
             >
-              {subscribed.has(r.feedUrl) ? (
-                <><Check size={14} /> Added</>
-              ) : subscribing === r.feedUrl ? (
-                <><Loader size={14} className="spinning" /> Adding…</>
-              ) : (
-                <><Plus size={14} /> Subscribe</>
-              )}
-            </button>
-          </div>
-        ))}
+              {r.artworkUrl && <img src={r.artworkUrl} alt="" className="search-result-artwork" loading="lazy" />}
+              <div className="search-result-info">
+                <div className="search-result-name">{r.name}</div>
+                <div className="search-result-artist">{r.artist}</div>
+                {r.genre && <div className="search-result-genre">{r.genre} · {r.trackCount} episodes</div>}
+              </div>
+              <button
+                className={`btn-subscribe ${isSubscribed ? 'subscribed' : ''}`}
+                onClick={(e) => handleSubscribe(r.feedUrl, e)}
+                disabled={isSubscribed || subscribing === r.feedUrl}
+              >
+                {isSubscribed ? (
+                  <><Check size={14} /> Added</>
+                ) : subscribing === r.feedUrl ? (
+                  <><Loader size={14} className="spinning" /> Adding…</>
+                ) : (
+                  <><Plus size={14} /> Subscribe</>
+                )}
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       {showUrlModal && (

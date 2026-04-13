@@ -83,6 +83,24 @@ async function upsertPodcastFromFeed(feedUrl, feed) {
   return { podcastId, totalEpisodes: items.length, newEpisodes: newCount };
 }
 
+// GET /api/podcasts/by-feed?url=... — look up a subscribed podcast by feed URL
+router.get('/by-feed', requireAuth, async (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: 'url required' });
+  try {
+    const result = await db.query(
+      `SELECT p.id FROM podcasts p
+       JOIN subscriptions s ON s.podcast_id = p.id
+       WHERE s.user_id = $1 AND p.feed_url = $2`,
+      [req.session.userId, url]
+    );
+    if (!result.rows[0]) return res.status(404).json({ error: 'not found' });
+    res.json({ id: result.rows[0].id });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to lookup podcast' });
+  }
+});
+
 // GET /api/podcasts — user's subscribed podcasts
 router.get('/', requireAuth, async (req, res) => {
   try {
