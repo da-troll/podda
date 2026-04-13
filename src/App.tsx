@@ -80,7 +80,7 @@ function AppContent() {
     switch (page.type) {
       case 'library': return <Library onNavigate={navigate} />;
       case 'podcast': return <PodcastDetail podcastId={page.id} onNavigate={navigate} />;
-      case 'discover': return <Discover />;
+      case 'discover': return <Discover onNavigate={navigate} />;
       case 'history': return <History />;
       case 'playlists': return <Playlists onNavigate={navigate} />;
       case 'playlist': return <PlaylistDetail playlistId={page.id} onNavigate={navigate} />;

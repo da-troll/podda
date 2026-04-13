@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import { api } from '../api';
-import { Search, Plus, Check, Loader, X } from 'lucide-react';
-import type { SearchResult } from '../types';
+import { Search, Plus, Check, Loader, X, Link } from 'lucide-react';
+import type { SearchResult, Page } from '../types';
 
-export function Discover() {
+interface DiscoverProps {
+  onNavigate: (page: Page) => void;
+}
+
+export function Discover({ onNavigate }: DiscoverProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [subscribing, setSubscribing] = useState<string | null>(null);
   const [subscribed, setSubscribed] = useState<Set<string>>(new Set());
+  const [opening, setOpening] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [urlInput, setUrlInput] = useState('');
@@ -30,7 +35,20 @@ export function Discover() {
     setSearching(false);
   };
 
-  const handleSubscribe = async (feedUrl: string) => {
+  const handleCardClick = async (feedUrl: string) => {
+    if (opening) return;
+    setOpening(feedUrl);
+    try {
+      const data = await api.fetchPodcast(feedUrl) as { id: number };
+      onNavigate({ type: 'podcast', id: data.id });
+    } catch (err: any) {
+      setError(`Could not open podcast: ${err.message}`);
+    }
+    setOpening(null);
+  };
+
+  const handleSubscribe = async (feedUrl: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     setSubscribing(feedUrl);
     try {
       await api.subscribe(feedUrl);
@@ -70,8 +88,8 @@ export function Discover() {
     <div className="page discover">
       <div className="page-header">
         <h1>Discover</h1>
-        <button className="btn-primary" onClick={() => setShowUrlModal(true)}>
-          <Plus size={16} /> Subscribe by URL
+        <button className="btn-secondary" onClick={() => setShowUrlModal(true)}>
+          <Link size={15} /> RSS URL
         </button>
       </div>
 
@@ -100,8 +118,22 @@ export function Discover() {
 
       <div className="search-results">
         {results.map(r => (
-          <div key={r.feedUrl} className="search-result-card">
-            {r.artworkUrl && <img src={r.artworkUrl} alt="" className="search-result-artwork" loading="lazy" />}
+          <div
+            key={r.feedUrl}
+            className={`search-result-card clickable ${opening === r.feedUrl ? 'opening' : ''}`}
+            onClick={() => handleCardClick(r.feedUrl)}
+          >
+            <div className="search-result-artwork-wrap">
+              {opening === r.feedUrl ? (
+                <div className="search-result-artwork search-result-artwork-loading">
+                  <Loader size={22} className="spinning" />
+                </div>
+              ) : r.artworkUrl ? (
+                <img src={r.artworkUrl} alt="" className="search-result-artwork" loading="lazy" />
+              ) : (
+                <div className="search-result-artwork search-result-artwork-placeholder" />
+              )}
+            </div>
             <div className="search-result-info">
               <div className="search-result-name">{r.name}</div>
               <div className="search-result-artist">{r.artist}</div>
@@ -109,7 +141,7 @@ export function Discover() {
             </div>
             <button
               className={`btn-subscribe ${subscribed.has(r.feedUrl) ? 'subscribed' : ''}`}
-              onClick={() => handleSubscribe(r.feedUrl)}
+              onClick={(e) => handleSubscribe(r.feedUrl, e)}
               disabled={subscribed.has(r.feedUrl) || subscribing === r.feedUrl}
             >
               {subscribed.has(r.feedUrl) ? (
