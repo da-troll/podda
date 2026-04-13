@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { AuthContext, useAuthState } from './hooks/useAuth';
 import { PlayerContext, usePlayerState } from './hooks/usePlayer';
 import { useSwipeGesture } from './hooks/useSwipeGesture';
@@ -51,6 +51,7 @@ function pageToHash(page: Page): string {
 function AppContent() {
   const [page, setPage] = useState<Page>(parseHash);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const mainContentRef = useRef<HTMLElement>(null);
   const [showSwipeHint, setShowSwipeHint] = useState(() => 'ontouchstart' in window && !hasSeenSwipeHint());
   const player = usePlayerState();
 
@@ -68,10 +69,14 @@ function AppContent() {
   const navigate = useCallback((p: Page) => {
     window.location.hash = pageToHash(p);
     setPage(p);
+    if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
   }, []);
 
   useEffect(() => {
-    const onHashChange = () => setPage(parseHash());
+    const onHashChange = () => {
+      setPage(parseHash());
+      if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
+    };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
@@ -107,7 +112,7 @@ function AppContent() {
             <img src="/podda-logo.png" alt="podda" className="brand-logo brand-logo--header" />
           </header>
           <AnnouncementBanner />
-          <main className="main-content">
+          <main className="main-content" ref={mainContentRef}>
             {renderPage()}
           </main>
         </div>
