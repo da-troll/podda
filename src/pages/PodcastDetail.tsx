@@ -13,9 +13,10 @@ type SortOrder = 'newest' | 'oldest';
 interface PodcastDetailProps {
   podcastId: number;
   onNavigate: (page: Page) => void;
+  onBack?: () => void;
 }
 
-export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
+export function PodcastDetail({ podcastId, onNavigate, onBack }: PodcastDetailProps) {
   const [podcast, setPodcast] = useState<Podcast | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [total, setTotal] = useState(0);
@@ -102,10 +103,19 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
   return (
     <div className="page podcast-detail">
       <div className="page-header">
-        <button className="btn-icon" onClick={() => onNavigate({ type: 'library' })}>
+        <button className="btn-icon" onClick={() => onBack ? onBack() : onNavigate({ type: 'library' })}>
           <ArrowLeft size={20} />
         </button>
         <h1>{podcast.title}</h1>
+        {podcast.is_subscribed ? (
+          <button className="btn-danger btn-sm" onClick={() => setShowUnsubConfirm(true)}>
+            <Trash2 size={14} /> Unsubscribe
+          </button>
+        ) : (
+          <button className="btn-primary btn-sm" onClick={handleSubscribe} disabled={subscribing}>
+            {subscribing ? <><Loader size={14} className="spinning" /> Subscribing…</> : <><Plus size={14} /> Subscribe</>}
+          </button>
+        )}
       </div>
 
       <div className="podcast-hero">
@@ -120,17 +130,6 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(podcast.description) }}
             />
           )}
-          <div className="podcast-hero-actions">
-            {podcast.is_subscribed ? (
-              <button className="btn-danger" onClick={() => setShowUnsubConfirm(true)}>
-                <Trash2 size={14} /> Unsubscribe
-              </button>
-            ) : (
-              <button className="btn-primary" onClick={handleSubscribe} disabled={subscribing}>
-                {subscribing ? <><Loader size={14} className="spinning" /> Subscribing…</> : <><Plus size={14} /> Subscribe</>}
-              </button>
-            )}
-          </div>
         </div>
       </div>
 

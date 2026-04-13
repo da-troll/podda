@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api';
 import { Search, Plus, Check, Loader, X, Link } from 'lucide-react';
+import { useDiscoverStore } from '../store/discoverStore';
 import type { SearchResult, Page } from '../types';
 
 interface DiscoverProps {
@@ -8,8 +9,7 @@ interface DiscoverProps {
 }
 
 export function Discover({ onNavigate }: DiscoverProps) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const { query, setQuery, results, setResults, scrollY: _scrollY } = useDiscoverStore();
   const [searching, setSearching] = useState(false);
   const [subscribing, setSubscribing] = useState<string | null>(null);
   const [subscribed, setSubscribed] = useState<Set<string>>(new Set());
@@ -43,8 +43,8 @@ export function Discover({ onNavigate }: DiscoverProps) {
       onNavigate({ type: 'podcast', id: data.id });
     } catch (err: any) {
       setError(`Could not open podcast: ${err.message}`);
+      setOpening(null);
     }
-    setOpening(null);
   };
 
   const handleSubscribe = async (feedUrl: string, e: React.MouseEvent) => {
@@ -101,7 +101,6 @@ export function Discover({ onNavigate }: DiscoverProps) {
             placeholder="Search podcasts…"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            autoFocus
           />
           {query && (
             <button type="button" className="search-clear-btn" onClick={() => { setQuery(''); setResults([]); setError(''); }}>

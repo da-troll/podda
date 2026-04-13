@@ -85,9 +85,9 @@ img { display: block; max-width: 100%; }
 }
 .sidebar-overlay { display: none; }
 
-.main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow-x: hidden; }
 .app-header { display: none; } /* visible on mobile only */
-.main-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px; }
+.main-content { flex: 1; overflow-y: auto; padding: 24px; }
 
 /* ── Brand Logo ──────────────────────────────────────────── */
 .brand-logo { display: block; }
@@ -129,6 +129,10 @@ img { display: block; max-width: 100%; }
 .discover .page-header,
 .library .page-header,
 .history .page-header { justify-content: space-between; }
+
+/* Back button + title + action: title fills middle, action pinned right */
+.podcast-detail .page-header h1 { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn-sm { padding: 5px 10px; font-size: 0.8rem; }
 
 /* ── Glassy Segmented Tab Control ────────────────────────── */
 .tab-bar {
@@ -200,7 +204,6 @@ img { display: block; max-width: 100%; }
 .podcast-hero-desc a { color: var(--accent); text-decoration: underline; }
 .podcast-hero-desc p { margin: 0 0 6px; }
 .podcast-hero-desc p:last-child { margin-bottom: 0; }
-.podcast-hero-actions { display: flex; gap: 8px; }
 .episode-list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .episode-list-header > span { font-size: 0.85rem; color: var(--text-muted); }
 .episode-list-header-actions { display: flex; align-items: center; gap: 6px; }
