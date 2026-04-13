@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { AuthContext, useAuthState } from './hooks/useAuth';
 import { PlayerContext, usePlayerState } from './hooks/usePlayer';
 import { useSwipeGesture } from './hooks/useSwipeGesture';
+import { SwipeHint, hasSeenSwipeHint, markSwipeHintSeen } from './components/SwipeHint';
 import { Sidebar } from './components/Sidebar';
 import { Player } from './components/Player';
 import { Login } from './pages/Login';
@@ -49,10 +50,16 @@ function pageToHash(page: Page): string {
 function AppContent() {
   const [page, setPage] = useState<Page>(parseHash);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showSwipeHint, setShowSwipeHint] = useState(() => !hasSeenSwipeHint());
   const player = usePlayerState();
 
+  const dismissHint = useCallback(() => {
+    markSwipeHintSeen();
+    setShowSwipeHint(false);
+  }, []);
+
   useSwipeGesture({
-    onSwipeRight: useCallback(() => setSidebarOpen(true), []),
+    onSwipeRight: useCallback(() => { setSidebarOpen(true); dismissHint(); }, [dismissHint]),
     onSwipeLeft: useCallback(() => setSidebarOpen(false), []),
     edgeZone: 0.5,
   });
@@ -104,6 +111,7 @@ function AppContent() {
         </div>
 
         <Player />
+        {showSwipeHint && <SwipeHint onDismiss={dismissHint} />}
       </div>
     </PlayerContext.Provider>
   );
