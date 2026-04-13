@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { AuthContext, useAuthState } from './hooks/useAuth';
 import { PlayerContext, usePlayerState } from './hooks/usePlayer';
 import { useSwipeGesture } from './hooks/useSwipeGesture';
@@ -14,6 +14,7 @@ import { Settings } from './pages/Settings';
 import { History } from './pages/History';
 import { Playlists } from './pages/Playlists';
 import { PlaylistDetail } from './pages/PlaylistDetail';
+import { useDiscoverStore } from './store/discoverStore';
 import { Menu, X } from 'lucide-react';
 import type { Page } from './types';
 
@@ -50,10 +51,16 @@ function pageToHash(page: Page): string {
 
 function AppContent() {
   const [page, setPage] = useState<Page>(parseHash);
+  const [pageStack, setPageStack] = useState<Page[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const mainContentRef = useRef<HTMLElement>(null);
+  const pendingScrollRef = useRef<number>(0);
+  // Flag to distinguish our own hash changes from browser back/forward
+  const programmaticNavRef = useRef(false);
   const [showSwipeHint, setShowSwipeHint] = useState(() => 'ontouchstart' in window && !hasSeenSwipeHint());
   const player = usePlayerState();
+  const setDiscoverScrollY = useDiscoverStore(s => s.setScrollY);
+  const discoverScrollY = useDiscoverStore(s => s.scrollY);
 
   const dismissHint = useCallback(() => {
     markSwipeHintSeen();
@@ -66,16 +73,54 @@ function AppContent() {
     edgeZone: 0.5,
   });
 
+  // Apply pending scroll after React commits the new page to DOM
+  useLayoutEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTop = pendingScrollRef.current;
+    }
+  }, [page]);
+
   const navigate = useCallback((p: Page) => {
+    // Save discover scroll before leaving it
+    if (page.type === 'discover' && mainContentRef.current) {
+      setDiscoverScrollY(mainContentRef.current.scrollTop);
+    }
+
+    // Push current page onto the back stack
+    setPageStack(prev => {
+      const last = prev[prev.length - 1];
+      if (last?.type === page.type) return prev;
+      return [...prev, page];
+    });
+
+    // Mark as programmatic so hashchange listener ignores it
+    programmaticNavRef.current = true;
     window.location.hash = pageToHash(p);
+    pendingScrollRef.current = 0;
     setPage(p);
-    if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
-  }, []);
+  }, [page, setDiscoverScrollY]);
+
+  const goBack = useCallback(() => {
+    const stack = [...pageStack];
+    const target = stack.pop() ?? { type: 'library' as const };
+    pendingScrollRef.current = target.type === 'discover' ? discoverScrollY : 0;
+    programmaticNavRef.current = true;
+    window.location.hash = pageToHash(target);
+    setPage(target);
+    setPageStack(stack);
+  }, [pageStack, discoverScrollY]);
 
   useEffect(() => {
     const onHashChange = () => {
+      // Ignore hash changes we triggered ourselves
+      if (programmaticNavRef.current) {
+        programmaticNavRef.current = false;
+        return;
+      }
+      // Genuine browser navigation (back/forward) — reset stack and scroll
+      setPageStack([]);
+      pendingScrollRef.current = 0;
       setPage(parseHash());
-      if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
@@ -84,7 +129,7 @@ function AppContent() {
   const renderPage = () => {
     switch (page.type) {
       case 'library': return <Library onNavigate={navigate} />;
-      case 'podcast': return <PodcastDetail podcastId={page.id} onNavigate={navigate} />;
+      case 'podcast': return <PodcastDetail podcastId={page.id} onNavigate={navigate} onBack={pageStack.length > 0 ? goBack : undefined} />;
       case 'discover': return <Discover onNavigate={navigate} />;
       case 'history': return <History />;
       case 'playlists': return <Playlists onNavigate={navigate} />;
@@ -97,7 +142,6 @@ function AppContent() {
   return (
     <PlayerContext.Provider value={player}>
       <div className={`app-layout ${player.episode ? 'has-player' : ''}`}>
-        {/* Mobile sidebar overlay */}
         {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
         <div className={`sidebar-container ${sidebarOpen ? 'open' : ''}`}>
