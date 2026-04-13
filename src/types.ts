@@ -77,6 +77,13 @@ export interface SmartPlaylistRules {
   duration_max?: number | null;
 }
 
+export type QueueSource =
+  | { type: 'podcast'; podcastId: number; sortOrder: 'newest' | 'oldest' }
+  | { type: 'playlist'; playlistId: number }
+  | { type: 'recent' }
+  | { type: 'history'; filter?: string }
+  | { type: 'continue' };
+
 export type Page =
   | { type: 'library' }
   | { type: 'podcast'; id: number }

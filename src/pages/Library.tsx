@@ -3,7 +3,7 @@ import { EyeOff, ListPlus } from 'lucide-react';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
 import { AddToPlaylistModal } from '../components/AddToPlaylistModal';
-import type { Podcast, Episode, Page } from '../types';
+import type { Podcast, Episode, Page, QueueSource } from '../types';
 
 const CL_DISMISSED_KEY = 'podda:cl-dismissed-id';
 
@@ -40,7 +40,7 @@ function ContinueListening({ onNavigate }: { onNavigate: (page: Page) => void })
       </div>
       <div className="continue-listening-list">
         <div className="continue-listening-card">
-          <EpisodeRow episode={ep} showPodcast showTimeRemaining hideActions queue={episodes.slice(1)} />
+          <EpisodeRow episode={ep} showPodcast showTimeRemaining hideActions queue={episodes.slice(1)} queueSource={{ type: 'continue' }} />
           <div className="cl-actions">
             <button
               className="cl-action-btn"
@@ -147,7 +147,7 @@ export function Library({ onNavigate }: LibraryProps) {
             <div className="empty-state"><p>No recent episodes.</p></div>
           ) : (
             recent.map((ep, idx) => (
-              <EpisodeRow key={ep.id} episode={ep} showPodcast queue={recent.slice(idx + 1)} />
+              <EpisodeRow key={ep.id} episode={ep} showPodcast queue={recent.slice(idx + 1)} queueSource={{ type: 'recent' }} />
             ))
           )}
         </div>

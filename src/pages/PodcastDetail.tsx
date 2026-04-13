@@ -3,7 +3,7 @@ import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { ArrowLeft, RefreshCw, Trash2 } from 'lucide-react';
-import type { Podcast, Episode, Page } from '../types';
+import type { Podcast, Episode, Page, QueueSource } from '../types';
 
 const PAGE_SIZE = 50;
 
@@ -71,6 +71,10 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
     return sorted;
   }, [episodes, sortOrder]);
 
+  const queueSource = useMemo<QueueSource>(() => ({
+    type: 'podcast', podcastId, sortOrder,
+  }), [podcastId, sortOrder]);
+
   const handleUnsubscribe = async () => {
     await api.unsubscribe(podcastId);
     onNavigate({ type: 'library' });
@@ -131,6 +135,7 @@ export function PodcastDetail({ podcastId, onNavigate }: PodcastDetailProps) {
             episode={ep}
             podcast={podcast}
             queue={sortedEpisodes.slice(idx + 1)}
+            queueSource={queueSource}
           />
         ))}
       </div>

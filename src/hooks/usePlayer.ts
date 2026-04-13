@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, useEffect, createContext, useContext } from 'react';
 import { api } from '../api';
-import type { Episode, Podcast } from '../types';
+import type { Episode, Podcast, QueueSource } from '../types';
+
+const QUEUE_SOURCE_KEY = 'podda_queue_source';
 
 interface PlayerState {
   episode: Episode | null;
@@ -25,7 +27,7 @@ interface PlayerContextType extends PlayerState {
   skipBackward: () => void;
   setSpeed: (speed: number) => void;
   setVolume: (vol: number) => void;
-  setQueue: (episodes: Episode[]) => void;
+  setQueue: (episodes: Episode[], source?: QueueSource) => void;
   toggleAutoPlay: () => void;
   toggleShuffle: () => void;
 }
@@ -120,8 +122,14 @@ export function usePlayerState(): PlayerContextType {
     playRef.current = play;
   }, [play]);
 
-  const setQueue = useCallback((episodes: Episode[]) => {
+  const queueSourceRef = useRef<QueueSource | null>(null);
+
+  const setQueue = useCallback((episodes: Episode[], source?: QueueSource) => {
     queueRef.current = episodes;
+    if (source) {
+      queueSourceRef.current = source;
+      try { localStorage.setItem(QUEUE_SOURCE_KEY, JSON.stringify(source)); } catch {}
+    }
     setState(prev => ({ ...prev, queue: episodes }));
   }, []);
 
@@ -180,6 +188,57 @@ export function usePlayerState(): PlayerContextType {
     setState(prev => ({ ...prev, volume: vol }));
   }, []);
 
+  // Rebuild queue from persisted source, returning episodes after the given episode ID
+  const rebuildQueue = useCallback(async (episodeId: number): Promise<Episode[]> => {
+    const source = queueSourceRef.current;
+    if (!source) {
+      // Try restoring from localStorage
+      try {
+        const stored = localStorage.getItem(QUEUE_SOURCE_KEY);
+        if (stored) queueSourceRef.current = JSON.parse(stored);
+      } catch {}
+    }
+    const src = queueSourceRef.current;
+    if (!src) return [];
+
+    try {
+      let episodes: Episode[] = [];
+      switch (src.type) {
+        case 'podcast': {
+          const data = await api.getEpisodes(src.podcastId, 200, 0) as { episodes: Episode[]; total: number };
+          episodes = data.episodes;
+          if (src.sortOrder === 'oldest') episodes = [...episodes].reverse();
+          break;
+        }
+        case 'playlist': {
+          const data = await api.getPlaylistEpisodes(src.playlistId) as { playlist: unknown; episodes: Episode[] };
+          episodes = data.episodes; // already sorted by server
+          break;
+        }
+        case 'recent': {
+          episodes = await api.getRecentEpisodes(30) as Episode[];
+          break;
+        }
+        case 'history': {
+          episodes = await api.getHistory(50, 0, src.filter) as Episode[];
+          break;
+        }
+        case 'continue': {
+          episodes = await api.getInProgress() as Episode[];
+          break;
+        }
+      }
+      // Find the current episode and return everything after it
+      const idx = episodes.findIndex(e => e.id === episodeId);
+      if (idx >= 0 && idx < episodes.length - 1) {
+        return episodes.slice(idx + 1);
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  }, []);
+
   // Audio event listeners
   useEffect(() => {
     const audio = audioRef.current;
@@ -189,24 +248,38 @@ export function usePlayerState(): PlayerContextType {
       setState(prev => ({ ...prev, position: audio.currentTime, duration: audio.duration || 0 }));
     };
 
+    const playNextFromQueue = (prev: PlayerState): PlayerState => {
+      if (queueRef.current.length === 0) return { ...prev, playing: false };
+      let nextIdx = 0;
+      if (shuffleRef.current) {
+        nextIdx = Math.floor(Math.random() * queueRef.current.length);
+      }
+      const next = queueRef.current[nextIdx];
+      const rest = [...queueRef.current.slice(0, nextIdx), ...queueRef.current.slice(nextIdx + 1)];
+      queueRef.current = rest;
+      queueMicrotask(() => playRef.current(next, prev.podcast));
+      return { ...prev, playing: false, episode: next, queue: rest, loading: true };
+    };
+
     const onEnded = () => {
       const audio = audioRef.current;
       setState(prev => {
         if (prev.episode) saveProgress(prev.episode.id, audio?.duration || 0, true);
 
-        // Auto-play next: update episode + queue in a single state transition
-        // so the UI reflects the switch immediately (no 300ms stale-icon gap).
-        if (autoPlayRef.current && queueRef.current.length > 0) {
-          let nextIdx = 0;
-          if (shuffleRef.current) {
-            nextIdx = Math.floor(Math.random() * queueRef.current.length);
-          }
-          const next = queueRef.current[nextIdx];
-          const rest = [...queueRef.current.slice(0, nextIdx), ...queueRef.current.slice(nextIdx + 1)];
-          queueRef.current = rest;
-          // Kick off audio load after state settles
-          queueMicrotask(() => playRef.current(next, prev.podcast));
-          return { ...prev, playing: false, episode: next, queue: rest, loading: true };
+        if (!autoPlayRef.current) return { ...prev, playing: false };
+
+        // Queue has episodes — play next immediately
+        if (queueRef.current.length > 0) return playNextFromQueue(prev);
+
+        // Queue empty but we have a source — rebuild asynchronously
+        if (queueSourceRef.current && prev.episode) {
+          const currentId = prev.episode.id;
+          rebuildQueue(currentId).then(rebuilt => {
+            if (rebuilt.length > 0) {
+              queueRef.current = rebuilt;
+              setState(p => playNextFromQueue(p));
+            }
+          });
         }
         return { ...prev, playing: false };
       });

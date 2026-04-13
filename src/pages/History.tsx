@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
-import type { Episode } from '../types';
+import type { Episode, QueueSource } from '../types';
 
 type HistoryFilter = 'all' | 'in-progress' | 'completed';
 
@@ -32,6 +32,10 @@ export function History() {
   useEffect(() => {
     load(filter);
   }, [filter, load]);
+
+  const queueSource = useMemo<QueueSource>(() => ({
+    type: 'history', filter: filter === 'all' ? undefined : filter,
+  }), [filter]);
 
   const handleFilterChange = (f: HistoryFilter) => {
     setFilter(f);
@@ -80,6 +84,7 @@ export function History() {
             episode={ep}
             showPodcast
             queue={episodes.slice(idx + 1)}
+            queueSource={queueSource}
             onMarkPlayed={!ep.listen_completed ? () => handleMarkPlayed(ep.id) : undefined}
             onMarkUnplayed={ep.listen_completed ? () => handleMarkUnplayed(ep.id) : undefined}
           />
