@@ -359,6 +359,8 @@ img { display: block; max-width: 100%; }
 .player-autoplay-btn.active { color: var(--accent); opacity: 1; }
 @media (hover: hover) { .player-autoplay-btn:hover { opacity: 1; background: var(--bg-hover); } }
 /* .player-time removed — replaced by .player-times in scrub area */
+.player-close-btn { color: var(--text-muted); opacity: 0.5; padding: 4px; flex-shrink: 0; transition: opacity 0.15s; }
+.player-close-btn:hover { opacity: 1; }
 .player-speed { font-size: 0.75rem; background: var(--bg-hover); padding: 3px 8px; border-radius: 4px; flex-shrink: 0; }
 .player-up-next { font-size: 0.72rem; color: var(--accent); opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; display: block; }
 

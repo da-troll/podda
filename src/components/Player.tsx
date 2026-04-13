@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { usePlayerContext } from '../hooks/usePlayer';
-import { Play, Pause, SkipBack, SkipForward, ListEnd, Shuffle, Loader2 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, ListEnd, Shuffle, Loader2, X } from 'lucide-react';
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
 const LONG_PRESS_MS = 150;
@@ -185,6 +185,19 @@ export function Player() {
             </div>
           </div>
           <button onClick={cycleSpeed} className="player-speed">{player.speed}x</button>
+          <button
+            className="player-close-btn"
+            title="Hide player"
+            onClick={() => {
+              const episodeId = player.episode?.id;
+              player.close();
+              if (episodeId != null) {
+                window.dispatchEvent(new CustomEvent('podda:player-closed', { detail: { episodeId } }));
+              }
+            }}
+          >
+            <X size={16} />
+          </button>
         </div>
       </div>
 

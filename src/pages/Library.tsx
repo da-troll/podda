@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { EyeOff, ListPlus } from 'lucide-react';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
@@ -15,17 +15,33 @@ function ContinueListening({ onNavigate }: { onNavigate: (page: Page) => void })
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [dismissed, setDismissed] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const episodesRef = useRef<Episode[]>([]);
 
   useEffect(() => {
     (api.getInProgress() as Promise<Episode[]>)
       .then(eps => {
         setEpisodes(eps);
+        episodesRef.current = eps;
         if (eps.length > 0) {
           const dismissedId = localStorage.getItem(CL_DISMISSED_KEY);
           if (dismissedId === String(eps[0].id)) setDismissed(true);
         }
       })
       .catch(console.error);
+  }, []);
+
+  // When the player is closed, restore CL if it was showing that episode
+  useEffect(() => {
+    const onPlayerClosed = (e: Event) => {
+      const { episodeId } = (e as CustomEvent).detail;
+      const ep = episodesRef.current[0];
+      if (ep && ep.id === episodeId) {
+        localStorage.removeItem(CL_DISMISSED_KEY);
+        setDismissed(false);
+      }
+    };
+    window.addEventListener('podda:player-closed', onPlayerClosed);
+    return () => window.removeEventListener('podda:player-closed', onPlayerClosed);
   }, []);
 
   if (episodes.length === 0 || dismissed) return null;
