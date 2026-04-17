@@ -328,10 +328,14 @@ img { display: block; max-width: 100%; }
 .player-subtitle { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Scrub area: progress bar + timestamps */
-.player-scrub-area { padding: 10px 16px 0; }
+.player-scrub-area { padding: 0; }
+.player-progress-touch {
+  padding: 14px 16px; cursor: pointer; touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
 .player-progress-bar {
-  height: 4px; background: rgba(255,255,255,0.08); cursor: pointer;
-  position: relative; border-radius: 2px; touch-action: none;
+  height: 4px; background: rgba(255,255,255,0.08);
+  position: relative; border-radius: 2px;
 }
 .player-progress-fill {
   height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light));
@@ -352,7 +356,7 @@ img { display: block; max-width: 100%; }
 .player-times {
   display: flex; justify-content: space-between;
   font-size: 0.7rem; color: var(--text-muted); font-variant-numeric: tabular-nums;
-  padding-top: 4px;
+  padding: 0 16px;
 }
 .player-controls { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 2px 0 6px; }
 .player-transport { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: var(--text); transition: background 0.15s; }
@@ -738,7 +742,9 @@ img { display: block; max-width: 100%; }
   .podcast-hero-artwork { width: 120px; height: 120px; }
 
   .player-top { padding: 6px 12px 0; }
-  .player-scrub-area { padding: 6px 12px 0; }
+  .player-scrub-area { padding: 0; }
+  .player-progress-touch { padding: 14px 12px; }
+  .player-times { padding: 0 12px; }
   .player-artwork { width: 36px; height: 36px; }
   .player-speed { display: none; }
   .player-controls { gap: 8px; padding-bottom: 4px; }

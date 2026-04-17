@@ -20,6 +20,8 @@ function clamp(v: number, min: number, max: number) {
 
 // How close (in % of bar width) a press must be to the thumb to grab instantly
 const GRAB_THRESHOLD_PCT = 4;
+// Within this distance of either end, snap to 0 or 100. Fingers are imprecise.
+const END_SNAP_PCT = 3;
 
 function ProgressBar({ position, duration, onSeek }: { position: number; duration: number; onSeek: (t: number) => void }) {
   const barRef = useRef<HTMLDivElement>(null);
@@ -35,7 +37,10 @@ function ProgressBar({ position, duration, onSeek }: { position: number; duratio
     const bar = barRef.current;
     if (!bar) return 0;
     const rect = bar.getBoundingClientRect();
-    return clamp((clientX - rect.left) / rect.width * 100, 0, 100);
+    const raw = clamp((clientX - rect.left) / rect.width * 100, 0, 100);
+    if (raw >= 100 - END_SNAP_PCT) return 100;
+    if (raw <= END_SNAP_PCT) return 0;
+    return raw;
   }, []);
 
   // Check if press is near the thumb — if so, grab immediately
@@ -139,8 +144,7 @@ function ProgressBar({ position, duration, onSeek }: { position: number; duratio
 
   return (
     <div
-      ref={barRef}
-      className={`player-progress-bar ${scrubbing ? 'scrubbing' : ''}`}
+      className="player-progress-touch"
       onClick={onClick}
       onMouseDown={onMouseDown}
       onMouseLeave={onMouseLeave}
@@ -149,8 +153,10 @@ function ProgressBar({ position, duration, onSeek }: { position: number; duratio
       onTouchEnd={onTouchEnd}
       onTouchCancel={onTouchEnd}
     >
-      <div className="player-progress-fill" style={{ width: `${displayPct}%` }} />
-      <div className={`player-scrub-thumb ${scrubbing ? 'active' : ''}`} style={{ left: `${displayPct}%` }} />
+      <div ref={barRef} className={`player-progress-bar ${scrubbing ? 'scrubbing' : ''}`}>
+        <div className="player-progress-fill" style={{ width: `${displayPct}%` }} />
+        <div className={`player-scrub-thumb ${scrubbing ? 'active' : ''}`} style={{ left: `${displayPct}%` }} />
+      </div>
     </div>
   );
 }
