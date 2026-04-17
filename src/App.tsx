@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react
 import { AuthContext, useAuthState } from './hooks/useAuth';
 import { PlayerContext, usePlayerState } from './hooks/usePlayer';
 import { useSwipeGesture } from './hooks/useSwipeGesture';
-import { SwipeHint, hasSeenSwipeHint, markSwipeHintSeen } from './components/SwipeHint';
+import { HintManager, dismissActiveHint } from './hints/HintManager';
+import { WhatsNewSheet } from './components/WhatsNewSheet';
 import { AnnouncementBanner } from './components/AnnouncementBanner';
 import { Sidebar } from './components/Sidebar';
 import { Player } from './components/Player';
@@ -11,6 +12,7 @@ import { Library } from './pages/Library';
 import { PodcastDetail } from './pages/PodcastDetail';
 import { Discover } from './pages/Discover';
 import { Settings } from './pages/Settings';
+import { Help } from './pages/Help';
 import { History } from './pages/History';
 import { Playlists } from './pages/Playlists';
 import { PlaylistDetail } from './pages/PlaylistDetail';
@@ -32,6 +34,7 @@ function parseHash(): Page {
     if (!isNaN(id)) return { type: 'playlist', id };
   }
   if (hash === 'settings') return { type: 'settings' };
+  if (hash === 'help') return { type: 'help' };
   if (hash === 'queue') return { type: 'queue' };
   return { type: 'library' };
 }
@@ -45,6 +48,7 @@ function pageToHash(page: Page): string {
     case 'playlists': return '#playlists';
     case 'playlist': return `#playlist/${page.id}`;
     case 'settings': return '#settings';
+    case 'help': return '#help';
     case 'queue': return '#queue';
   }
 }
@@ -57,18 +61,12 @@ function AppContent() {
   const pendingScrollRef = useRef<number>(0);
   // Flag to distinguish our own hash changes from browser back/forward
   const programmaticNavRef = useRef(false);
-  const [showSwipeHint, setShowSwipeHint] = useState(() => 'ontouchstart' in window && !hasSeenSwipeHint());
   const player = usePlayerState();
   const setDiscoverScrollY = useDiscoverStore(s => s.setScrollY);
   const discoverScrollY = useDiscoverStore(s => s.scrollY);
 
-  const dismissHint = useCallback(() => {
-    markSwipeHintSeen();
-    setShowSwipeHint(false);
-  }, []);
-
   useSwipeGesture({
-    onSwipeRight: useCallback(() => { setSidebarOpen(true); dismissHint(); }, [dismissHint]),
+    onSwipeRight: useCallback(() => { setSidebarOpen(true); dismissActiveHint(); }, []),
     onSwipeLeft: useCallback(() => setSidebarOpen(false), []),
     edgeZone: 0.5,
   });
@@ -134,7 +132,8 @@ function AppContent() {
       case 'history': return <History />;
       case 'playlists': return <Playlists onNavigate={navigate} />;
       case 'playlist': return <PlaylistDetail playlistId={page.id} onNavigate={navigate} />;
-      case 'settings': return <Settings />;
+      case 'settings': return <Settings onNavigate={navigate} />;
+      case 'help': return <Help />;
       default: return <Library onNavigate={navigate} />;
     }
   };
@@ -162,7 +161,8 @@ function AppContent() {
         </div>
 
         <Player />
-        {showSwipeHint && <SwipeHint onDismiss={dismissHint} />}
+        <HintManager />
+        <WhatsNewSheet />
       </div>
     </PlayerContext.Provider>
   );

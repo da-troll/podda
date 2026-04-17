@@ -748,76 +748,192 @@ img { display: block; max-width: 100%; }
   .mobile-menu { display: none; }
 }
 
-/* ── Swipe Hint Overlay ──────────────────────────────────── */
-@keyframes swipe-chevron {
+/* ── Hint Overlay (generic) ──────────────────────────────── */
+@keyframes hint-chevron {
   0%, 100% { opacity: 0.15; transform: translateX(-6px); }
   50%       { opacity: 1;    transform: translateX(6px); }
 }
 
-@keyframes swipe-dot-pulse {
+@keyframes hint-dot-pulse {
   0%, 100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(99,102,241,0.6); }
   50%       { transform: scale(1.1); box-shadow: 0 0 0 12px rgba(99,102,241,0); }
 }
 
-.swipe-hint-overlay {
+@keyframes hint-ripple {
+  0%   { transform: scale(0.5); opacity: 0.6; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.hint-overlay {
   position: fixed; inset: 0; z-index: 300;
   background: rgba(0, 0, 0, 0.82);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Vertical dotted divider at 50vw */
-.swipe-hint-divider {
+.hint-gesture { pointer-events: none; }
+
+/* Swipe-right: dotted midline + finger + chevrons flowing right */
+.hint-gesture-swipe .hint-gesture-divider {
   position: absolute; top: 0; bottom: 0; left: 50%;
   border-left: 2px dashed rgba(255, 255, 255, 0.2);
-  pointer-events: none;
 }
-
-/* Arrow group centred in the left half, vertically at 42% */
-.swipe-hint-gesture {
-  position: absolute;
-  left: 25%; top: 42%;
+.hint-gesture-swipe-flow {
+  position: absolute; left: 25%; top: 42%;
   transform: translate(-50%, -50%);
   display: flex; align-items: center; gap: 2px;
 }
 
-.swipe-hint-touch-dot {
+/* Long-press: pulsing dot, centred */
+.hint-gesture-longpress {
+  position: absolute; left: 50%; top: 42%;
+  transform: translate(-50%, -50%);
+}
+
+/* Tap: dot with ripple, centred */
+.hint-gesture-tap {
+  position: absolute; left: 50%; top: 42%;
+  transform: translate(-50%, -50%);
+  display: grid; place-items: center;
+}
+.hint-gesture-ripple {
+  position: absolute;
+  width: 60px; height: 60px; border-radius: 50%;
+  border: 2px solid var(--accent);
+  animation: hint-ripple 1.4s ease-out infinite;
+}
+
+.hint-gesture-touch-dot {
   width: 22px; height: 22px;
   border-radius: 50%;
   background: var(--accent);
   flex-shrink: 0;
   margin-right: 6px;
-  animation: swipe-dot-pulse 1.4s ease-in-out infinite;
+}
+.hint-gesture-touch-pulse {
+  animation: hint-dot-pulse 1.4s ease-in-out infinite;
+  margin: 0;
 }
 
-.swipe-hint-chevron {
+.hint-gesture-chevron {
   color: var(--accent);
-  animation: swipe-chevron 1.4s ease-in-out infinite;
+  animation: hint-chevron 1.4s ease-in-out infinite;
 }
-.swipe-hint-chevron-1 { animation-delay: 0s; }
-.swipe-hint-chevron-2 { animation-delay: 0.18s; }
-.swipe-hint-chevron-3 { animation-delay: 0.36s; }
+.hint-gesture-chevron-1 { animation-delay: 0s; }
+.hint-gesture-chevron-2 { animation-delay: 0.18s; }
+.hint-gesture-chevron-3 { animation-delay: 0.36s; }
 
-/* Text centred in the left half, just below the gesture */
-.swipe-hint-text {
+.hint-text {
   position: absolute;
-  left: 25%; top: 58%;
+  left: 50%; top: 58%;
   transform: translateX(-50%);
-  width: min(220px, 40vw);
+  width: min(280px, 70vw);
   text-align: center;
   color: #fff;
   font-size: 1rem; font-weight: 600;
   line-height: 1.5;
 }
+/* Swipe variant keeps text on the left half */
+.hint-overlay:has(.hint-gesture-swipe) .hint-text {
+  left: 25%;
+  width: min(220px, 40vw);
+}
 
-/* "Tap to dismiss" at the bottom centre */
-.swipe-hint-dismiss {
+.hint-dismiss {
   position: absolute;
   bottom: 10%; left: 50%;
   transform: translateX(-50%);
   color: rgba(255, 255, 255, 0.4);
   font-size: 0.78rem;
   white-space: nowrap;
+}
+
+/* ── What's New Sheet ────────────────────────────────────── */
+.whatsnew-backdrop {
+  position: fixed; inset: 0; z-index: 310;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex; align-items: flex-end; justify-content: center;
+  animation: fade-in 0.18s ease-out;
+}
+.whatsnew-sheet {
+  position: relative;
+  width: 100%; max-width: 520px;
+  background: var(--bg-surface, var(--bg));
+  border-top-left-radius: 18px; border-top-right-radius: 18px;
+  padding: 18px 22px 22px;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
+  animation: slide-up 0.22s ease-out;
+}
+.whatsnew-grip {
+  width: 40px; height: 4px; border-radius: 2px;
+  background: var(--border, rgba(255, 255, 255, 0.15));
+  margin: 0 auto 14px;
+}
+.whatsnew-close {
+  position: absolute; top: 12px; right: 14px;
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; padding: 6px; border-radius: 6px;
+}
+.whatsnew-close:hover { color: var(--text); }
+.whatsnew-header {
+  display: flex; gap: 12px; align-items: flex-start;
+  margin-bottom: 12px;
+}
+.whatsnew-icon { color: var(--accent); margin-top: 2px; flex-shrink: 0; }
+.whatsnew-title { margin: 0; font-size: 1.1rem; font-weight: 700; }
+.whatsnew-date { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+.whatsnew-bullets {
+  margin: 0 0 18px; padding: 0 0 0 18px;
+  display: flex; flex-direction: column; gap: 8px;
+  color: var(--text);
+}
+.whatsnew-bullets li { line-height: 1.45; font-size: 0.92rem; }
+.whatsnew-got-it {
+  width: 100%;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: var(--radius);
+  padding: 12px; font-weight: 600; font-size: 0.95rem;
+  cursor: pointer;
+}
+@keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Help Page ───────────────────────────────────────────── */
+.help-intro {
+  color: var(--text-muted);
+  margin: 0 0 18px;
+  font-size: 0.9rem;
+}
+.help-section { margin-bottom: 22px; }
+.help-section h2 {
+  font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-muted); margin: 0 0 8px;
+}
+.help-card {
+  background: var(--bg-surface, var(--bg));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.help-row {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+}
+.help-row:last-child { border-bottom: none; }
+.help-row-icon {
+  flex-shrink: 0;
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  color: var(--accent);
+}
+.help-row-body { flex: 1; min-width: 0; }
+.help-row-label { font-weight: 600; font-size: 0.92rem; margin-bottom: 2px; }
+.help-row-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+.help-text-icon {
+  font-weight: 700; font-size: 0.8rem;
+  min-width: 28px; text-align: center;
+  display: inline-block;
 }
 
 /* ── Announcement Banners ────────────────────────────────── */
