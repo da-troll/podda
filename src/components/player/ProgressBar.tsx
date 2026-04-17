@@ -5,6 +5,21 @@ const LONG_PRESS_MS = 150;
 const GRAB_THRESHOLD_PCT = 4;
 const END_SNAP_PCT = 3;
 
+// Variable-speed scrubbing (Apple pattern): drag vertically away from the
+// bar during a touch scrub to slow down the scrub rate.
+const VSCRUB_TIERS: { minOffsetPx: number; scale: number; label: string }[] = [
+  { minOffsetPx: 0,   scale: 1,     label: 'Hi-speed' },
+  { minOffsetPx: 60,  scale: 0.5,   label: 'Half-speed' },
+  { minOffsetPx: 140, scale: 0.25,  label: 'Quarter-speed' },
+  { minOffsetPx: 240, scale: 0.125, label: 'Fine' },
+];
+
+function tierFor(offsetPx: number) {
+  let tier = VSCRUB_TIERS[0];
+  for (const t of VSCRUB_TIERS) if (offsetPx >= t.minOffsetPx) tier = t;
+  return tier;
+}
+
 function clamp(v: number, min: number, max: number) {
   return Math.max(min, Math.min(max, v));
 }
@@ -21,6 +36,9 @@ export function ProgressBar({ position, duration, onSeek }: Props) {
   const [scrubbing, setScrubbing] = useState(false);
   const [scrubPct, setScrubPct] = useState(0);
   const scrubbingRef = useRef(false);
+  // Variable-speed scrubbing: remember touch origin + percentage at scrub start
+  const touchOrigin = useRef<{ x: number; y: number; startPct: number } | null>(null);
+  const [scrubScaleLabel, setScrubScaleLabel] = useState<string | null>(null);
 
   const livePct = duration > 0 ? (position / duration) * 100 : 0;
   const displayPct = scrubbing ? scrubPct : livePct;
@@ -52,15 +70,24 @@ export function ProgressBar({ position, duration, onSeek }: Props) {
     hapticImpact('LIGHT');
   }, []);
 
+  const beginTouchScrub = useCallback((clientX: number, clientY: number, initialPct: number) => {
+    touchOrigin.current = { x: clientX, y: clientY, startPct: initialPct };
+    setScrubScaleLabel(null);
+    startScrub(initialPct);
+  }, [startScrub]);
+
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     const touch = e.touches[0];
     const pct = getPct(touch.clientX);
     if (isNearThumb(touch.clientX)) {
-      startScrub(pct);
+      beginTouchScrub(touch.clientX, touch.clientY, pct);
     } else {
-      longPressTimer.current = window.setTimeout(() => startScrub(pct), LONG_PRESS_MS);
+      longPressTimer.current = window.setTimeout(
+        () => beginTouchScrub(touch.clientX, touch.clientY, pct),
+        LONG_PRESS_MS,
+      );
     }
-  }, [getPct, isNearThumb, startScrub]);
+  }, [getPct, isNearThumb, beginTouchScrub]);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     if (!scrubbingRef.current) {
@@ -68,7 +95,23 @@ export function ProgressBar({ position, duration, onSeek }: Props) {
       return;
     }
     e.preventDefault();
-    setScrubPct(getPct(e.touches[0].clientX));
+    const touch = e.touches[0];
+    const origin = touchOrigin.current;
+    const bar = barRef.current;
+    if (!origin || !bar) {
+      setScrubPct(getPct(touch.clientX));
+      return;
+    }
+    const rect = bar.getBoundingClientRect();
+    const vOffset = Math.abs(touch.clientY - origin.y);
+    const tier = tierFor(vOffset);
+    setScrubScaleLabel(tier.scale === 1 ? null : tier.label);
+    const rawDeltaPct = ((touch.clientX - origin.x) / rect.width) * 100;
+    const scaledPct = origin.startPct + rawDeltaPct * tier.scale;
+    let next = clamp(scaledPct, 0, 100);
+    if (next >= 100 - END_SNAP_PCT) next = 100;
+    else if (next <= END_SNAP_PCT) next = 0;
+    setScrubPct(next);
   }, [getPct]);
 
   const onTouchEnd = useCallback(() => {
@@ -76,6 +119,8 @@ export function ProgressBar({ position, duration, onSeek }: Props) {
     if (scrubbingRef.current) {
       scrubbingRef.current = false;
       setScrubbing(false);
+      setScrubScaleLabel(null);
+      touchOrigin.current = null;
       hapticImpact('LIGHT');
       if (duration > 0) onSeek((scrubPct / 100) * duration);
     }
@@ -141,6 +186,9 @@ export function ProgressBar({ position, duration, onSeek }: Props) {
         <div className="player-progress-fill" style={{ width: `${displayPct}%` }} />
         <div className={`player-scrub-thumb ${scrubbing ? 'active' : ''}`} style={{ left: `${displayPct}%` }} />
       </div>
+      {scrubScaleLabel && (
+        <div className="player-scrub-scale-label">{scrubScaleLabel}</div>
+      )}
     </div>
   );
 }

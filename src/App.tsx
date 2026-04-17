@@ -160,7 +160,7 @@ function AppContent() {
           </main>
         </div>
 
-        <Player />
+        <Player onNavigate={navigate} />
         <HintManager />
         <WhatsNewSheet />
       </div>
