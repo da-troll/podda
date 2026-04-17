@@ -1,19 +1,27 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Play, Pause, SkipBack, SkipForward, Shuffle, ListEnd, Loader2 } from 'lucide-react';
 import { usePlayerContext } from '../../hooks/usePlayer';
 import { ProgressBar, formatTime } from './ProgressBar';
 import { SleepMenu } from './SleepMenu';
+import { OverflowMenu } from './OverflowMenu';
 import { hapticImpact, hapticSelection } from './haptics';
+import type { Page } from '../../types';
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
+const SWIPE_DOWN_THRESHOLD_PX = 120;
+const SWIPE_DOWN_VELOCITY_PX_MS = 0.5;
 
 interface Props {
   onCollapse: () => void;
+  onNavigate: (page: Page) => void;
 }
 
-export function ExpandedPlayer({ onCollapse }: Props) {
+export function ExpandedPlayer({ onCollapse, onNavigate }: Props) {
   const player = usePlayerContext();
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const dragStart = useRef<{ y: number; t: number } | null>(null);
+  const [dragY, setDragY] = useState(0);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -50,13 +58,48 @@ export function ExpandedPlayer({ onCollapse }: Props) {
 
   const wrap = (fn: () => void) => () => { hapticSelection(); fn(); };
 
+  const onDragStart = (e: React.TouchEvent) => {
+    dragStart.current = { y: e.touches[0].clientY, t: performance.now() };
+  };
+
+  const onDragMove = (e: React.TouchEvent) => {
+    if (!dragStart.current) return;
+    const dy = e.touches[0].clientY - dragStart.current.y;
+    setDragY(Math.max(0, dy));
+  };
+
+  const onDragEnd = () => {
+    if (!dragStart.current) return;
+    const elapsed = performance.now() - dragStart.current.t;
+    const velocity = dragY / Math.max(elapsed, 1);
+    const shouldCollapse = dragY > SWIPE_DOWN_THRESHOLD_PX || velocity > SWIPE_DOWN_VELOCITY_PX_MS;
+    dragStart.current = null;
+    if (shouldCollapse) onCollapse();
+    else setDragY(0);
+  };
+
+  const transform = dragY > 0 ? `translateY(${dragY}px)` : undefined;
+  const transition = dragStart.current ? 'none' : 'transform 0.2s ease-out';
+
   return createPortal(
-    <div className="expanded-player" role="dialog" aria-modal="true">
-      <div className="expanded-player-header">
+    <div
+      ref={sheetRef}
+      className="expanded-player"
+      role="dialog"
+      aria-modal="true"
+      style={{ transform, transition }}
+    >
+      <div
+        className="expanded-player-header"
+        onTouchStart={onDragStart}
+        onTouchMove={onDragMove}
+        onTouchEnd={onDragEnd}
+        onTouchCancel={onDragEnd}
+      >
         <button className="expanded-player-collapse" onClick={onCollapse} aria-label="Collapse player">
           <ChevronDown size={28} />
         </button>
-        <div className="expanded-player-header-label">Now Playing</div>
+        <div className="expanded-player-grip" />
         <div className="expanded-player-header-spacer" />
       </div>
 
@@ -110,6 +153,7 @@ export function ExpandedPlayer({ onCollapse }: Props) {
           >
             <ListEnd size={20} />
           </button>
+          <OverflowMenu onNavigate={onNavigate} />
         </div>
       </div>
     </div>,

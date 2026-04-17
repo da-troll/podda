@@ -363,11 +363,7 @@ img { display: block; max-width: 100%; }
   transition: color 0.15s, background 0.15s;
 }
 .expanded-player-collapse:hover { color: var(--text); background: var(--bg-hover); }
-.expanded-player-header-label {
-  flex: 1; text-align: center; font-size: 0.85rem; font-weight: 600;
-  color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em;
-}
-.expanded-player-header-spacer { width: 44px; }
+.expanded-player-header-spacer { width: 44px; flex-shrink: 0; }
 
 .expanded-player-body {
   flex: 1; display: flex; flex-direction: column;
@@ -494,6 +490,51 @@ img { display: block; max-width: 100%; }
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
+
+/* Swipe-down drag handle (grip) on expanded sheet header */
+.expanded-player-grip {
+  flex: 1; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  touch-action: none;
+}
+.expanded-player-grip::before {
+  content: '';
+  width: 36px; height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.18);
+}
+
+/* Variable-speed scrub indicator */
+.player-scrub-scale-label {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  top: -28px;
+  font-size: 0.72rem; font-weight: 600;
+  color: var(--accent-light);
+  background: rgba(13, 13, 20, 0.9);
+  padding: 4px 10px; border-radius: 12px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.player-progress-touch { position: relative; }
+
+/* Overflow menu (expanded secondary row) */
+.player-overflow-wrap { position: relative; }
+.player-overflow-backdrop { position: fixed; inset: 0; z-index: 205; }
+.player-overflow-menu {
+  position: absolute; bottom: calc(100% + 6px); right: 0;
+  z-index: 206;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 4px; min-width: 180px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  display: flex; flex-direction: column;
+}
+.player-overflow-menu button {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; text-align: left; border-radius: 6px;
+  font-size: 0.9rem; color: var(--text);
+}
+.player-overflow-menu button:hover { background: var(--bg-hover); }
 
 
 /* ── Search / Discover ───────────────────────────────────── */
