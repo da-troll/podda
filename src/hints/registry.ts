@@ -16,6 +16,14 @@ export const HINTS: HintDef[] = [
     text: 'You can now swipe right to open the navigation menu.',
     condition: () => 'ontouchstart' in window,
   },
+  {
+    id: 'mini-expand',
+    version: 1,
+    trigger: 'player-open',
+    gesture: 'tap',
+    text: 'Tap the player to see full controls.',
+    condition: () => 'ontouchstart' in window,
+  },
 ];
 
 export function hintStorageKey(def: HintDef): string {

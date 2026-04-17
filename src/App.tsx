@@ -6,7 +6,7 @@ import { HintManager, dismissActiveHint } from './hints/HintManager';
 import { WhatsNewSheet } from './components/WhatsNewSheet';
 import { AnnouncementBanner } from './components/AnnouncementBanner';
 import { Sidebar } from './components/Sidebar';
-import { Player } from './components/Player';
+import { Player } from './components/player/Player';
 import { Login } from './pages/Login';
 import { Library } from './pages/Library';
 import { PodcastDetail } from './pages/PodcastDetail';
