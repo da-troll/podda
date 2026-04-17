@@ -25,8 +25,16 @@ export function ExpandedPlayer({ onCollapse }: Props) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onCollapse();
     };
+    const onBack = (e: Event) => {
+      e.preventDefault();
+      onCollapse();
+    };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('podda:backpressed', onBack);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('podda:backpressed', onBack);
+    };
   }, [onCollapse]);
 
   if (!player.episode) return null;
