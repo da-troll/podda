@@ -3,6 +3,9 @@ import { api } from '../api';
 import type { Episode, Podcast, QueueSource } from '../types';
 
 const QUEUE_SOURCE_KEY = 'podda_queue_source';
+const LAST_EPISODE_KEY = 'podda_last_episode';
+
+type SleepTimerMode = { type: 'duration'; endsAt: number } | { type: 'end-of-episode' };
 
 interface PlayerState {
   episode: Episode | null;
@@ -16,6 +19,8 @@ interface PlayerState {
   queue: Episode[];
   autoPlay: boolean;
   shuffle: boolean;
+  sleepTimer: SleepTimerMode | null;
+  sleepTimerRemaining: number | null;
 }
 
 interface PlayerContextType extends PlayerState {
@@ -30,6 +35,7 @@ interface PlayerContextType extends PlayerState {
   setQueue: (episodes: Episode[], source?: QueueSource) => void;
   toggleAutoPlay: () => void;
   toggleShuffle: () => void;
+  setSleepTimer: (mode: SleepTimerMode | null) => void;
   close: () => void;
 }
 
@@ -59,6 +65,7 @@ export function usePlayerState(): PlayerContextType {
   const autoPlayRef = useRef<boolean>(localStorage.getItem('podda_autoplay') !== 'false');
   const shuffleRef = useRef<boolean>(localStorage.getItem('podda_shuffle') === 'true');
   const playRef = useRef<(episode: Episode, podcast?: Podcast | null) => void>(() => {});
+  const sleepTimerRef = useRef<SleepTimerMode | null>(null);
 
   const [state, setState] = useState<PlayerState>({
     episode: null,
@@ -72,6 +79,8 @@ export function usePlayerState(): PlayerContextType {
     queue: [],
     autoPlay: autoPlayRef.current,
     shuffle: shuffleRef.current,
+    sleepTimer: null,
+    sleepTimerRemaining: null,
   });
 
   // Save progress to backend
@@ -88,6 +97,10 @@ export function usePlayerState(): PlayerContextType {
     if (!audio) return;
 
     setState(prev => ({ ...prev, episode, podcast: podcast || prev.podcast, loading: true, playing: false }));
+
+    try {
+      localStorage.setItem(LAST_EPISODE_KEY, JSON.stringify({ episodeId: episode.id, podcastId: podcast?.id ?? null }));
+    } catch {}
 
     audio.src = episode.audio_url;
     audio.playbackRate = state.speed;
@@ -267,6 +280,12 @@ export function usePlayerState(): PlayerContextType {
       setState(prev => {
         if (prev.episode) saveProgress(prev.episode.id, audio?.duration || 0, true);
 
+        // Sleep timer set to "end of episode" — stop here and clear the timer
+        if (sleepTimerRef.current?.type === 'end-of-episode') {
+          sleepTimerRef.current = null;
+          return { ...prev, playing: false, sleepTimer: null, sleepTimerRemaining: null };
+        }
+
         if (!autoPlayRef.current) return { ...prev, playing: false };
 
         // Queue has episodes — play next immediately
@@ -338,15 +357,95 @@ export function usePlayerState(): PlayerContextType {
     navigator.mediaSession.setActionHandler('seekforward', skipForward);
   }, [togglePlay, skipBackward, skipForward]);
 
+  // Sleep timer — tick once a second, pause when duration expires
+  const setSleepTimer = useCallback((mode: SleepTimerMode | null) => {
+    sleepTimerRef.current = mode;
+    if (!mode) {
+      setState(prev => ({ ...prev, sleepTimer: null, sleepTimerRemaining: null }));
+      return;
+    }
+    const remaining = mode.type === 'duration' ? Math.max(0, Math.ceil((mode.endsAt - Date.now()) / 1000)) : null;
+    setState(prev => ({ ...prev, sleepTimer: mode, sleepTimerRemaining: remaining }));
+  }, []);
+
+  useEffect(() => {
+    if (!state.sleepTimer || state.sleepTimer.type !== 'duration') return;
+    const endsAt = state.sleepTimer.endsAt;
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+      if (remaining <= 0) {
+        const audio = audioRef.current;
+        if (audio && !audio.paused) {
+          audio.pause();
+          setState(prev => {
+            if (prev.episode) saveProgress(prev.episode.id, audio.currentTime);
+            return { ...prev, playing: false, sleepTimer: null, sleepTimerRemaining: null };
+          });
+        } else {
+          setState(prev => ({ ...prev, sleepTimer: null, sleepTimerRemaining: null }));
+        }
+        sleepTimerRef.current = null;
+        return;
+      }
+      setState(prev => prev.sleepTimerRemaining === remaining ? prev : { ...prev, sleepTimerRemaining: remaining });
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [state.sleepTimer, saveProgress]);
+
+  // Rehydrate last episode on cold start (no autoplay)
+  useEffect(() => {
+    const stored = localStorage.getItem(LAST_EPISODE_KEY);
+    if (!stored) return;
+    try {
+      const { episodeId, podcastId } = JSON.parse(stored) as { episodeId: number; podcastId: number | null };
+      (async () => {
+        try {
+          const [ep, pod] = await Promise.all([
+            api.getEpisode(episodeId) as Promise<Episode>,
+            podcastId ? (api.getPodcast(podcastId) as Promise<Podcast>) : Promise.resolve(null),
+          ]);
+          const audio = audioRef.current;
+          if (!audio || !ep) return;
+          audio.src = ep.audio_url;
+          const startPos = ep.listen_position || 0;
+          if (startPos > 0) audio.currentTime = startPos;
+          setState(prev => ({
+            ...prev,
+            episode: ep,
+            podcast: pod,
+            position: startPos,
+            loading: false,
+            playing: false,
+          }));
+        } catch {
+          try { localStorage.removeItem(LAST_EPISODE_KEY); } catch {}
+        }
+      })();
+    } catch {
+      try { localStorage.removeItem(LAST_EPISODE_KEY); } catch {}
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const close = useCallback(() => {
     const audio = audioRef.current;
+    setState(prev => {
+      if (prev.episode && audio) {
+        saveProgress(prev.episode.id, audio.currentTime);
+      }
+      return prev;
+    });
     if (audio) {
       audio.pause();
       audio.src = '';
     }
     queueRef.current = [];
     queueSourceRef.current = null;
+    sleepTimerRef.current = null;
     try { localStorage.removeItem(QUEUE_SOURCE_KEY); } catch {}
+    try { localStorage.removeItem(LAST_EPISODE_KEY); } catch {}
     setState(prev => ({
       ...prev,
       episode: null,
@@ -356,8 +455,10 @@ export function usePlayerState(): PlayerContextType {
       duration: 0,
       loading: false,
       queue: [],
+      sleepTimer: null,
+      sleepTimerRemaining: null,
     }));
-  }, []);
+  }, [saveProgress]);
 
   return {
     ...state,
@@ -372,6 +473,7 @@ export function usePlayerState(): PlayerContextType {
     setQueue,
     toggleAutoPlay,
     toggleShuffle,
+    setSleepTimer,
     close,
   };
 }
