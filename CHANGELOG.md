@@ -7,6 +7,16 @@ Format: one `## v<major>.<minor>.<patch> — <YYYY-MM-DD>` header per release,
 followed by bullet points. `publish-update.sh` requires an entry matching
 the version being published — releases without an entry fail.
 
+## v1.0.42 — 2026-04-17
+
+- Player redesign: compact mini bar + full-screen expanded view — tap the mini bar to open
+- Scrub bar: much larger touch target with end-snap, so reaching 0:00 and the end of an episode actually works on mobile
+- Variable-speed scrubbing: drag the scrubber vertically for half / quarter / fine precision, like Apple Podcasts
+- Swipe down on the expanded player to collapse it
+- New overflow menu (⋮) on the expanded player: Mark played, Go to podcast, Share
+- Haptic feedback on scrub, speed change, sleep timer, and transport buttons (Android)
+- Android hardware back button now collapses the expanded player before leaving the page
+
 ## v1.0.41 — 2026-04-17
 
 - Sleep timer: auto-pause after 5, 15, 30, 45, or 60 minutes, or at end of episode
