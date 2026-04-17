@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { usePlayerContext } from '../hooks/usePlayer';
-import { Play, Pause, SkipBack, SkipForward, ListEnd, Shuffle, Loader2, X } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, ListEnd, Shuffle, Loader2, X, Moon } from 'lucide-react';
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
 const LONG_PRESS_MS = 150;
@@ -155,8 +155,18 @@ function ProgressBar({ position, duration, onSeek }: { position: number; duratio
   );
 }
 
+const SLEEP_PRESETS_MIN = [5, 15, 30, 45, 60];
+
+function formatSleepRemaining(s: number): string {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  if (m === 0) return `${sec}s`;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
 export function Player() {
   const player = usePlayerContext();
+  const [sleepMenuOpen, setSleepMenuOpen] = useState(false);
 
   const artwork = player.episode?.artwork_url || player.episode?.podcast_artwork_url || player.podcast?.artwork_url;
   const upNext = player.autoPlay && player.queue.length > 0 ? player.queue[0] : null;
@@ -166,6 +176,13 @@ export function Player() {
     const next = SPEEDS[(idx + 1) % SPEEDS.length];
     player.setSpeed(next);
   };
+
+  const sleepActive = player.sleepTimer != null;
+  const sleepLabel = player.sleepTimer?.type === 'end-of-episode'
+    ? 'End'
+    : player.sleepTimerRemaining != null
+      ? formatSleepRemaining(player.sleepTimerRemaining)
+      : null;
 
   return (
     <>
@@ -185,6 +202,47 @@ export function Player() {
             </div>
           </div>
           <button onClick={cycleSpeed} className="player-speed">{player.speed}x</button>
+          <div className="player-sleep-wrap">
+            <button
+              className={`player-sleep-btn ${sleepActive ? 'active' : ''}`}
+              title={sleepActive ? `Sleep timer: ${sleepLabel}` : 'Sleep timer'}
+              onClick={() => setSleepMenuOpen(o => !o)}
+            >
+              <Moon size={16} />
+              {sleepLabel && <span className="player-sleep-label">{sleepLabel}</span>}
+            </button>
+            {sleepMenuOpen && (
+              <>
+                <div className="player-sleep-backdrop" onClick={() => setSleepMenuOpen(false)} />
+                <div className="player-sleep-menu" role="menu">
+                  {SLEEP_PRESETS_MIN.map(m => (
+                    <button
+                      key={m}
+                      onClick={() => {
+                        player.setSleepTimer({ type: 'duration', endsAt: Date.now() + m * 60_000 });
+                        setSleepMenuOpen(false);
+                      }}
+                    >{m} min</button>
+                  ))}
+                  <button
+                    onClick={() => {
+                      player.setSleepTimer({ type: 'end-of-episode' });
+                      setSleepMenuOpen(false);
+                    }}
+                  >End of episode</button>
+                  {sleepActive && (
+                    <button
+                      className="player-sleep-cancel"
+                      onClick={() => {
+                        player.setSleepTimer(null);
+                        setSleepMenuOpen(false);
+                      }}
+                    >Cancel timer</button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
           <button
             className="player-close-btn"
             title="Hide player"

@@ -6,7 +6,12 @@ import { AddToPlaylistModal } from '../components/AddToPlaylistModal';
 import { usePlayerContext } from '../hooks/usePlayer';
 import type { Podcast, Episode, Page, QueueSource } from '../types';
 
-const CL_DISMISSED_KEY = 'podda:cl-dismissed-id';
+const CL_DISMISSED_KEY = 'podda:cl-dismissed-date';
+
+function todayKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
 
 interface LibraryProps {
   onNavigate: (page: Page) => void;
@@ -22,10 +27,7 @@ function ContinueListening({ onNavigate }: { onNavigate: (page: Page) => void })
     (api.getInProgress() as Promise<Episode[]>)
       .then(eps => {
         setEpisodes(eps);
-        if (eps.length > 0) {
-          const dismissedId = localStorage.getItem(CL_DISMISSED_KEY);
-          if (dismissedId === String(eps[0].id)) setDismissed(true);
-        }
+        if (localStorage.getItem(CL_DISMISSED_KEY) === todayKey()) setDismissed(true);
       })
       .catch(console.error);
   }, []);
@@ -64,7 +66,7 @@ function ContinueListening({ onNavigate }: { onNavigate: (page: Page) => void })
               className="cl-action-btn"
               title="Dismiss"
               onClick={() => {
-                localStorage.setItem(CL_DISMISSED_KEY, String(ep.id));
+                localStorage.setItem(CL_DISMISSED_KEY, todayKey());
                 setDismissed(true);
               }}
             >
