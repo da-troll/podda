@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api';
 import { useAuthContext } from '../hooks/useAuth';
-import { Upload, LogOut, FileText, Megaphone, Trash2 } from 'lucide-react';
-import type { Announcement } from '../types';
+import { Upload, LogOut, FileText, Megaphone, Trash2, HelpCircle } from 'lucide-react';
+import type { Announcement, Page } from '../types';
 
-export function Settings() {
+interface SettingsProps {
+  onNavigate: (page: Page) => void;
+}
+
+export function Settings({ onNavigate }: SettingsProps) {
   const { user, logout } = useAuthContext();
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -43,6 +47,14 @@ export function Settings() {
     <div className="page settings">
       <div className="page-header">
         <h1>Settings</h1>
+        <button
+          className="btn-icon"
+          title="Help"
+          aria-label="Help"
+          onClick={() => onNavigate({ type: 'help' })}
+        >
+          <HelpCircle size={20} />
+        </button>
       </div>
 
       <section className="settings-section">

@@ -1,0 +1,11 @@
+{
+  "version": "1.0.41",
+  "date": "2026-04-17",
+  "bullets": [
+    "Sleep timer: auto-pause after 5, 15, 30, 45, or 60 minutes, or at end of episode",
+    "Player state now persists across cold starts — reopen the app and the last episode is ready to resume",
+    "\"Continue Listening\" dismiss now resets at the start of each day instead of being permanent",
+    "Help page added — find icon and gesture reference in Settings",
+    "\"What's New\" now appears once per release"
+  ]
+}

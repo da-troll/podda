@@ -104,4 +104,5 @@ export type Page =
   | { type: 'history' }
   | { type: 'playlists' }
   | { type: 'playlist'; id: number }
-  | { type: 'settings' };
+  | { type: 'settings' }
+  | { type: 'help' };
