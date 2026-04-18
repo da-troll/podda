@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Play, Pause, SkipBack, SkipForward, Shuffle, ListEnd, Loader2 } from 'lucide-react';
+import { ChevronDown, Play, Pause, RotateCcw, RotateCw, Shuffle, ListEnd, Loader2, ListMusic, ChevronRight } from 'lucide-react';
 import { usePlayerContext } from '../../hooks/usePlayer';
 import { ProgressBar, formatTime } from './ProgressBar';
 import { SleepMenu } from './SleepMenu';
 import { OverflowMenu } from './OverflowMenu';
+import { UpNextPanel } from './UpNextPanel';
 import { hapticImpact, hapticSelection } from './haptics';
 import type { Page } from '../../types';
 
@@ -22,6 +23,7 @@ export function ExpandedPlayer({ onCollapse, onNavigate }: Props) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragStart = useRef<{ y: number; t: number } | null>(null);
   const [dragY, setDragY] = useState(0);
+  const [queueOpen, setQueueOpen] = useState(false);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -34,6 +36,7 @@ export function ExpandedPlayer({ onCollapse, onNavigate }: Props) {
       if (e.key === 'Escape') onCollapse();
     };
     const onBack = (e: Event) => {
+      if (queueOpen) return; // UpNextPanel handles its own back press
       e.preventDefault();
       onCollapse();
     };
@@ -43,7 +46,7 @@ export function ExpandedPlayer({ onCollapse, onNavigate }: Props) {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('podda:backpressed', onBack);
     };
-  }, [onCollapse]);
+  }, [onCollapse, queueOpen]);
 
   if (!player.episode) return null;
 
@@ -100,7 +103,17 @@ export function ExpandedPlayer({ onCollapse, onNavigate }: Props) {
           <ChevronDown size={28} />
         </button>
         <div className="expanded-player-grip" />
-        <div className="expanded-player-header-spacer" />
+        <button
+          className="expanded-player-queue-btn"
+          onClick={() => { hapticSelection(); setQueueOpen(true); }}
+          aria-label="Up next"
+          title="Up next"
+        >
+          <ListMusic size={22} />
+          {player.queue.length > 0 && (
+            <span className="expanded-player-queue-badge">{player.queue.length}</span>
+          )}
+        </button>
       </div>
 
       <div className="expanded-player-body">
@@ -120,14 +133,14 @@ export function ExpandedPlayer({ onCollapse, onNavigate }: Props) {
 
         <div className="expanded-player-transport">
           <button onClick={wrap(player.skipBackward)} aria-label="Skip back 15 seconds" className="transport-skip">
-            <SkipBack size={28} />
+            <RotateCcw size={36} strokeWidth={1.75} />
             <span className="transport-skip-num">15</span>
           </button>
           <button onClick={wrap(player.togglePlay)} className="transport-play" aria-label={player.playing ? 'Pause' : 'Play'}>
             {player.loading ? <Loader2 size={36} className="spin" /> : player.playing ? <Pause size={36} /> : <Play size={36} />}
           </button>
           <button onClick={wrap(player.skipForward)} aria-label="Skip forward 15 seconds" className="transport-skip">
-            <SkipForward size={28} />
+            <RotateCw size={36} strokeWidth={1.75} />
             <span className="transport-skip-num">15</span>
           </button>
         </div>
@@ -155,7 +168,20 @@ export function ExpandedPlayer({ onCollapse, onNavigate }: Props) {
           </button>
           <OverflowMenu onNavigate={onNavigate} />
         </div>
+
+        {player.queue.length > 0 && (
+          <button
+            className="expanded-player-upnext-strip"
+            onClick={() => { hapticSelection(); setQueueOpen(true); }}
+          >
+            <div className="upnext-strip-label">Up next</div>
+            <div className="upnext-strip-title">{player.queue[0].title}</div>
+            <ChevronRight size={18} className="upnext-strip-chevron" />
+          </button>
+        )}
       </div>
+
+      {queueOpen && <UpNextPanel onClose={() => setQueueOpen(false)} />}
     </div>,
     document.body
   );
