@@ -17,6 +17,7 @@ interface PlayerState {
   volume: number;
   loading: boolean;
   queue: Episode[];
+  queueSource: QueueSource | null;
   autoPlay: boolean;
   shuffle: boolean;
   sleepTimer: SleepTimerMode | null;
@@ -33,6 +34,7 @@ interface PlayerContextType extends PlayerState {
   setSpeed: (speed: number) => void;
   setVolume: (vol: number) => void;
   setQueue: (episodes: Episode[], source?: QueueSource) => void;
+  playFromQueue: (index: number) => void;
   toggleAutoPlay: () => void;
   toggleShuffle: () => void;
   setSleepTimer: (mode: SleepTimerMode | null) => void;
@@ -77,6 +79,7 @@ export function usePlayerState(): PlayerContextType {
     volume: 1,
     loading: false,
     queue: [],
+    queueSource: null,
     autoPlay: autoPlayRef.current,
     shuffle: shuffleRef.current,
     sleepTimer: null,
@@ -144,7 +147,21 @@ export function usePlayerState(): PlayerContextType {
       queueSourceRef.current = source;
       try { localStorage.setItem(QUEUE_SOURCE_KEY, JSON.stringify(source)); } catch {}
     }
-    setState(prev => ({ ...prev, queue: episodes }));
+    setState(prev => ({ ...prev, queue: episodes, queueSource: source ?? prev.queueSource }));
+  }, []);
+
+  const playFromQueue = useCallback((index: number) => {
+    const q = queueRef.current;
+    if (index < 0 || index >= q.length) return;
+    const target = q[index];
+    const rest = q.slice(index + 1);
+    queueRef.current = rest;
+    setState(prev => ({ ...prev, queue: rest }));
+    // Use current podcast as fallback; play() will set episode metadata.
+    setState(prev => {
+      queueMicrotask(() => playRef.current(target, prev.podcast));
+      return prev;
+    });
   }, []);
 
   const toggleAutoPlay = useCallback(() => {
@@ -455,6 +472,7 @@ export function usePlayerState(): PlayerContextType {
       duration: 0,
       loading: false,
       queue: [],
+      queueSource: null,
       sleepTimer: null,
       sleepTimerRemaining: null,
     }));
@@ -471,6 +489,7 @@ export function usePlayerState(): PlayerContextType {
     setSpeed,
     setVolume,
     setQueue,
+    playFromQueue,
     toggleAutoPlay,
     toggleShuffle,
     setSleepTimer,
