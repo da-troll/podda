@@ -1,13 +1,10 @@
 {
-  "version": "1.0.42",
-  "date": "2026-04-17",
+  "version": "1.0.43",
+  "date": "2026-04-18",
   "bullets": [
-    "Player redesign: compact mini bar + full-screen expanded view — tap the mini bar to open",
-    "Scrub bar: much larger touch target with end-snap, so reaching 0:00 and the end of an episode actually works on mobile",
-    "Variable-speed scrubbing: drag the scrubber vertically for half / quarter / fine precision, like Apple Podcasts",
-    "Swipe down on the expanded player to collapse it",
-    "New overflow menu (⋮) on the expanded player: Mark played, Go to podcast, Share",
-    "Haptic feedback on scrub, speed change, sleep timer, and transport buttons (Android)",
-    "Android hardware back button now collapses the expanded player before leaving the page"
+    "Up Next panel: tap the queue icon in the expanded player to see the rest of the episodes in the current queue, with the source shown (\"From *podcast*\" / \"From *playlist*\")",
+    "Tap any episode in the panel to jump straight to it",
+    "New preview strip at the bottom of the expanded player shows the next episode at a glance",
+    "Skip buttons: \"15\" label no longer overlaps the arrow icons — now sits cleanly inside the skip arcs, matching Apple Podcasts / Spotify"
   ]
 }

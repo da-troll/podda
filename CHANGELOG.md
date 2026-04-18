@@ -7,6 +7,13 @@ Format: one `## v<major>.<minor>.<patch> — <YYYY-MM-DD>` header per release,
 followed by bullet points. `publish-update.sh` requires an entry matching
 the version being published — releases without an entry fail.
 
+## v1.0.43 — 2026-04-18
+
+- Up Next panel: tap the queue icon in the expanded player to see the rest of the episodes in the current queue, with the source shown ("From *podcast*" / "From *playlist*")
+- Tap any episode in the panel to jump straight to it
+- New preview strip at the bottom of the expanded player shows the next episode at a glance
+- Skip buttons: "15" label no longer overlaps the arrow icons — now sits cleanly inside the skip arcs, matching Apple Podcasts / Spotify
+
 ## v1.0.42 — 2026-04-17
 
 - Player redesign: compact mini bar + full-screen expanded view — tap the mini bar to open
