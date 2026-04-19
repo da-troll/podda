@@ -7,6 +7,10 @@ Format: one `## v<major>.<minor>.<patch> — <YYYY-MM-DD>` header per release,
 followed by bullet points. `publish-update.sh` requires an entry matching
 the version being published — releases without an entry fail.
 
+## v1.0.44 — 2026-04-19
+
+- Tapping the Podda logo in the nav header now navigates to the Library tab
+
 ## v1.0.43 — 2026-04-18
 
 - Up Next panel: tap the queue icon in the expanded player to see the rest of the episodes in the current queue, with the source shown ("From *podcast*" / "From *playlist*")
