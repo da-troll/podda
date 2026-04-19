@@ -1,10 +1,7 @@
 {
-  "version": "1.0.43",
-  "date": "2026-04-18",
+  "version": "1.0.44",
+  "date": "2026-04-19",
   "bullets": [
-    "Up Next panel: tap the queue icon in the expanded player to see the rest of the episodes in the current queue, with the source shown (\"From *podcast*\" / \"From *playlist*\")",
-    "Tap any episode in the panel to jump straight to it",
-    "New preview strip at the bottom of the expanded player shows the next episode at a glance",
-    "Skip buttons: \"15\" label no longer overlaps the arrow icons — now sits cleanly inside the skip arcs, matching Apple Podcasts / Spotify"
+    "Tapping the Podda logo in the nav header now navigates to the Library tab"
   ]
 }
