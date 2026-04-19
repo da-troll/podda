@@ -91,6 +91,14 @@ img { display: block; max-width: 100%; }
 
 /* ── Brand Logo ──────────────────────────────────────────── */
 .brand-logo { display: block; }
+.brand-logo-btn {
+  background: none; border: 0; padding: 4px 8px; cursor: pointer;
+  display: inline-flex; align-items: center;
+  border-radius: 6px;
+  transition: opacity 0.15s, background 0.15s;
+}
+.brand-logo-btn:hover { background: var(--bg-hover); }
+.brand-logo-btn:active { opacity: 0.6; }
 .brand-logo--sidebar { height: 22px; width: auto; }
 .brand-logo--header { height: 20px; width: auto; }
 .brand-logo--login { height: 101px; width: auto; }
@@ -992,7 +1000,7 @@ img { display: block; max-width: 100%; }
     border-bottom: 1px solid var(--glass-border);
     position: relative; z-index: 101;
   }
-  .app-header .brand-logo--header { margin: 0 auto; }
+  .app-header .brand-logo-btn { margin: 0 auto; }
   .app-header::after { content: ''; width: 36px; flex-shrink: 0; }
   .app-header-title { font-weight: 700; font-size: 1.1rem; color: var(--accent); }
 

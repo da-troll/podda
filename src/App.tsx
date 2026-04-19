@@ -152,7 +152,13 @@ function AppContent() {
             <button className="btn-icon mobile-menu" onClick={() => setSidebarOpen(o => !o)}>
               {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
-            <img src="/podda-logo.png" alt="podda" className="brand-logo brand-logo--header" />
+            <button
+              className="brand-logo-btn"
+              onClick={() => navigate({ type: 'library' })}
+              aria-label="Go to library"
+            >
+              <img src="/podda-logo.png" alt="podda" className="brand-logo brand-logo--header" />
+            </button>
           </header>
           <AnnouncementBanner />
           <main className="main-content" ref={mainContentRef}>
