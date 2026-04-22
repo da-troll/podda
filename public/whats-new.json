@@ -1,7 +1,7 @@
 {
-  "version": "1.0.44",
-  "date": "2026-04-19",
+  "version": "1.0.45",
+  "date": "2026-04-22",
   "bullets": [
-    "Tapping the Podda logo in the nav header now navigates to the Library tab"
+    "First release published to the Google Play Store"
   ]
 }

@@ -7,6 +7,10 @@ Format: one `## v<major>.<minor>.<patch> — <YYYY-MM-DD>` header per release,
 followed by bullet points. `publish-update.sh` requires an entry matching
 the version being published — releases without an entry fail.
 
+## v1.0.45 — 2026-04-22
+
+- First release published to the Google Play Store
+
 ## v1.0.44 — 2026-04-19
 
 - Tapping the Podda logo in the nav header now navigates to the Library tab
