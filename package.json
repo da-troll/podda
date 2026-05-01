@@ -1,6 +1,6 @@
 {
   "name": "podda",
-  "version": "1.8.0",
+  "version": "1.0.47",
   "type": "module",
   "private": true,
   "scripts": {
