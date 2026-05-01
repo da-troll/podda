@@ -7,6 +7,10 @@ Format: one `## v<major>.<minor>.<patch> — <YYYY-MM-DD>` header per release,
 followed by bullet points. `publish-update.sh` requires an entry matching
 the version being published — releases without an entry fail.
 
+## v1.0.47 — 2026-05-01
+
+- Smaller download size (≈45% smaller AAB) and improved crash diagnostics under the hood
+
 ## v1.0.46 — 2026-04-22
 
 - The "update available" banner now opens Google Play instead of a sideload APK
