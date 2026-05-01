@@ -4,7 +4,7 @@ Self-hosted family podcast app. Subscribe to RSS feeds, discover new podcasts vi
 
 Built as a Castbox replacement for the Trollefsen household.
 
-**Live:** https://pod.trollefsen.com
+**Live:** https://podda.trollefsen.com
 
 ## Features
 
@@ -283,7 +283,7 @@ systemctl --user enable --now podda
 ### Caddy Configuration
 
 ```caddyfile
-pod.trollefsen.com {
+podda.trollefsen.com {
     encode gzip zstd
 
     @api path /api/*
