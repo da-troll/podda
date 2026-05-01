@@ -1,7 +1,8 @@
 {
-  "version": "1.0.45",
-  "date": "2026-04-22",
+  "version": "1.0.46",
+  "date": "2026-05-01",
   "bullets": [
-    "First release published to the Google Play Store"
+    "The \"update available\" banner now opens Google Play instead of a sideload APK",
+    "Sideload install option moved to a secondary link on the download page (still works for de-Googled devices)"
   ]
 }

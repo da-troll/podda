@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Podda — Download Update</title>
+  <title>Podda — Get the App</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -43,10 +43,10 @@
       text-align: left;
       display: none;
     }
-    .btn {
+    .btn-primary {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       background: #6366f1;
       color: #fff;
       font-size: 1rem;
@@ -56,15 +56,41 @@
       text-decoration: none;
       width: 100%;
       justify-content: center;
-      display: none;
     }
-    .btn:hover { background: #5558e3; }
-    .hint {
-      font-size: 0.78rem;
-      color: rgba(255,255,255,0.3);
+    .btn-primary:hover { background: #5558e3; }
+    .btn-primary svg { width: 22px; height: 22px; }
+    details {
+      margin-top: 22px;
+      text-align: left;
+    }
+    summary {
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.45);
+      padding: 6px 0;
+      list-style: none;
+      text-align: center;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary:hover { color: rgba(255,255,255,0.7); }
+    .fallback {
       margin-top: 14px;
-      display: none;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.5;
     }
+    .fallback a {
+      color: #a5b4fc;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+    .fallback a:hover { text-decoration: underline; }
     .loading { color: rgba(255,255,255,0.4); font-size: 0.9rem; }
     .error { color: #f87171; font-size: 0.9rem; display: none; }
   </style>
@@ -75,30 +101,46 @@
     <h1>Podda</h1>
     <div class="version" id="version">Loading…</div>
     <div class="changelog" id="changelog"></div>
-    <p class="loading" id="loading">Loading version info…</p>
-    <p class="error" id="error">Could not load version info. Try again later.</p>
-    <a class="btn" id="download-btn" href="#">Download APK</a>
-    <p class="hint" id="hint">Android only · Enable "Install unknown apps" in settings</p>
+
+    <a class="btn-primary" href="https://play.google.com/store/apps/details?id=com.trollefsen.podda">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814 13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893 2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198 2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658 16.802 8.99l-2.302 2.302-8.636-8.634z"/></svg>
+      Get on Google Play
+    </a>
+
+    <details>
+      <summary>Other install options</summary>
+      <div class="fallback">
+        Running a de-Googled ROM (GrapheneOS, /e/OS, etc.) or just prefer to sideload? You can install the APK directly. The signing key matches the Play Store version, so you can switch between them at any time.
+        <p class="loading" id="apk-loading">Loading…</p>
+        <p class="error" id="error">Couldn't fetch APK info.</p>
+        <a id="apk-link" href="#" style="display:none;">⬇ Download APK (Android only)</a>
+      </div>
+    </details>
   </div>
 
   <script>
     fetch('/podda-app-version.json', { cache: 'no-store' })
       .then(r => r.json())
       .then(info => {
-        document.getElementById('loading').style.display = 'none';
         document.getElementById('version').textContent = 'Version ' + info.version;
         if (info.changelog) {
           const el = document.getElementById('changelog');
           el.textContent = info.changelog;
           el.style.display = 'block';
         }
-        const btn = document.getElementById('download-btn');
-        btn.href = info.url;
-        btn.style.display = 'inline-flex';
-        document.getElementById('hint').style.display = 'block';
+        document.getElementById('apk-loading').style.display = 'none';
+        const link = document.getElementById('apk-link');
+        if (info.url && info.url.endsWith('.apk')) {
+          link.href = info.url;
+          link.style.display = 'inline-block';
+        } else {
+          document.getElementById('apk-loading').textContent = 'No sideload APK published for this version. Install via Play Store above.';
+          document.getElementById('apk-loading').style.display = 'block';
+        }
       })
       .catch(() => {
-        document.getElementById('loading').style.display = 'none';
+        document.getElementById('version').textContent = '';
+        document.getElementById('apk-loading').style.display = 'none';
         document.getElementById('error').style.display = 'block';
       });
   </script>
