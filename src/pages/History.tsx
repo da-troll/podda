@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
+import { useListRefresh } from '../hooks/useListRefresh';
 import type { Episode, QueueSource } from '../types';
 
 type HistoryFilter = 'all' | 'in-progress' | 'completed';
@@ -32,6 +33,20 @@ export function History() {
   useEffect(() => {
     load(filter);
   }, [filter, load]);
+
+  // Refresh against the same filter, preserving how many rows are loaded.
+  const reload = useCallback(() => {
+    setEpisodes(prev => {
+      const limit = Math.max(prev.length, 50);
+      const filterParam = filter === 'all' ? undefined : filter;
+      api.getHistory(limit, 0, filterParam).then(data => {
+        setEpisodes(data as Episode[]);
+        setHasMore((data as Episode[]).length === limit);
+      }).catch(() => {});
+      return prev;
+    });
+  }, [filter]);
+  useListRefresh(reload);
 
   const queueSource = useMemo<QueueSource>(() => ({
     type: 'history', filter: filter === 'all' ? undefined : filter,

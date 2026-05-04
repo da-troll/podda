@@ -4,6 +4,7 @@ import { EpisodeRow } from '../components/EpisodeRow';
 import { SmartPlaylistBuilder, filterSummary } from '../components/SmartPlaylistBuilder';
 import { ArrowLeft, Trash2, GripVertical, SkipForward, ListEnd, Settings2, Zap } from 'lucide-react';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { useListRefresh } from '../hooks/useListRefresh';
 import type { Playlist, Episode, SmartPlaylistRules, Page, QueueSource } from '../types';
 
 interface PlaylistDetailProps {
@@ -53,6 +54,15 @@ export function PlaylistDetail({ playlistId, onNavigate }: PlaylistDetailProps) 
   }, [playlistId]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Refresh episode rows in-place (without clobbering edit-form state).
+  const reloadEpisodes = useCallback(async () => {
+    try {
+      const data = await api.getPlaylistEpisodes(playlistId) as { playlist: Playlist; episodes: Episode[] };
+      setEpisodes(data.episodes);
+    } catch {}
+  }, [playlistId]);
+  useListRefresh(reloadEpisodes);
 
   const handleRemove = async (episodeId: number) => {
     await api.removeFromPlaylist(playlistId, episodeId);
