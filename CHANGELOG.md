@@ -7,6 +7,10 @@ Format: one `## v<major>.<minor>.<patch> — <YYYY-MM-DD>` header per release,
 followed by bullet points. `publish-update.sh` requires an entry matching
 the version being published — releases without an entry fail.
 
+## v1.0.50 — 2026-05-04
+
+- Fix the home-screen and splash icon — was incorrectly showing the "podda" wordmark; now shows the correct circular "p" icon
+
 ## v1.0.49 — 2026-05-04
 
 - Support for one-off in-app messages from the Podda team — for things like maintenance windows or new-feature tips, without needing a full app update

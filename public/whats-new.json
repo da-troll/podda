@@ -1,7 +1,7 @@
 {
-  "version": "1.0.49",
+  "version": "1.0.50",
   "date": "2026-05-04",
   "bullets": [
-    "Support for one-off in-app messages from the Podda team — for things like maintenance windows or new-feature tips, without needing a full app update"
+    "Fix the home-screen and splash icon — was incorrectly showing the \"podda\" wordmark; now shows the correct circular \"p\" icon"
   ]
 }
