@@ -1,7 +1,7 @@
 {
-  "version": "1.0.47",
-  "date": "2026-05-01",
+  "version": "1.0.48",
+  "date": "2026-05-04",
   "bullets": [
-    "Smaller download size (≈45% smaller AAB) and improved crash diagnostics under the hood"
+    "Episode list now refreshes automatically when episodes complete or you switch back to the app — no more stale \"halfway\" markers after listening through several episodes"
   ]
 }

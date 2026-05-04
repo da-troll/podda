@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import DOMPurify from 'dompurify';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { ArrowLeft, RefreshCw, Trash2, Plus, Loader } from 'lucide-react';
+import { useListRefresh } from '../hooks/useListRefresh';
 import type { Podcast, Episode, Page, QueueSource } from '../types';
 
 const PAGE_SIZE = 50;
@@ -40,6 +41,21 @@ export function PodcastDetail({ podcastId, onNavigate, onBack }: PodcastDetailPr
   };
 
   useEffect(load, [podcastId]);
+
+  // Refresh progress/completion state in-place. Preserves pagination by
+  // refetching `episodes.length` rows from offset 0.
+  const reloadEpisodes = useCallback(() => {
+    setEpisodes(prev => {
+      const limit = Math.max(prev.length, PAGE_SIZE);
+      api.getEpisodes(podcastId, limit, 0).then(data => {
+        setEpisodes((data as { episodes: Episode[]; total: number }).episodes);
+        setTotal((data as { episodes: Episode[]; total: number }).total);
+      }).catch(() => {});
+      return prev;
+    });
+  }, [podcastId]);
+
+  useListRefresh(reloadEpisodes);
 
   const handleLoadMore = async () => {
     setLoadingMore(true);

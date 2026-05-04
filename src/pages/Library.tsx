@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { EyeOff, ListPlus } from 'lucide-react';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
 import { AddToPlaylistModal } from '../components/AddToPlaylistModal';
 import { usePlayerContext } from '../hooks/usePlayer';
+import { useListRefresh } from '../hooks/useListRefresh';
 import type { Podcast, Episode, Page, QueueSource } from '../types';
 
 const CL_DISMISSED_KEY = 'podda:cl-dismissed-date';
@@ -23,14 +24,17 @@ function ContinueListening({ onNavigate }: { onNavigate: (page: Page) => void })
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const player = usePlayerContext();
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     (api.getInProgress() as Promise<Episode[]>)
-      .then(eps => {
-        setEpisodes(eps);
-        if (localStorage.getItem(CL_DISMISSED_KEY) === todayKey()) setDismissed(true);
-      })
-      .catch(console.error);
+      .then(eps => setEpisodes(eps))
+      .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    reload();
+    if (localStorage.getItem(CL_DISMISSED_KEY) === todayKey()) setDismissed(true);
+  }, [reload]);
+  useListRefresh(reload);
 
   const isInPlayer = episodes.length > 0 && player.episode?.id === episodes[0].id;
 
@@ -91,7 +95,7 @@ export function Library({ onNavigate }: LibraryProps) {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'podcasts' | 'recent'>('podcasts');
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     Promise.all([
       api.getPodcasts() as Promise<Podcast[]>,
       api.getRecentEpisodes(30) as Promise<Episode[]>,
@@ -101,6 +105,9 @@ export function Library({ onNavigate }: LibraryProps) {
     }).catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => { reload(); }, [reload]);
+  useListRefresh(reload);
 
   if (loading) return <div className="page-loading">Loading...</div>;
 

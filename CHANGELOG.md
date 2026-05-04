@@ -7,6 +7,10 @@ Format: one `## v<major>.<minor>.<patch> — <YYYY-MM-DD>` header per release,
 followed by bullet points. `publish-update.sh` requires an entry matching
 the version being published — releases without an entry fail.
 
+## v1.0.48 — 2026-05-01
+
+- Episode list now refreshes automatically when episodes complete or you switch back to the app — no more stale "halfway" markers after listening through several episodes
+
 ## v1.0.47 — 2026-05-01
 
 - Smaller download size (≈45% smaller AAB) and improved crash diagnostics under the hood
