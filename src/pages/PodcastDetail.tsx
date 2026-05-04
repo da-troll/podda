@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import DOMPurify from 'dompurify';
 import { api } from '../api';
 import { EpisodeRow } from '../components/EpisodeRow';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { ArrowLeft, RefreshCw, Trash2, Plus, Loader } from 'lucide-react';
+import { usePlayerContext } from '../hooks/usePlayer';
 import type { Podcast, Episode, Page, QueueSource } from '../types';
 
 const PAGE_SIZE = 50;
@@ -26,6 +27,7 @@ export function PodcastDetail({ podcastId, onNavigate, onBack }: PodcastDetailPr
   const [subscribing, setSubscribing] = useState(false);
   const [showUnsubConfirm, setShowUnsubConfirm] = useState(false);
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
+  const player = usePlayerContext();
 
   const load = () => {
     Promise.all([
@@ -40,6 +42,38 @@ export function PodcastDetail({ podcastId, onNavigate, onBack }: PodcastDetailPr
   };
 
   useEffect(load, [podcastId]);
+
+  // Refresh progress/completion state in-place. Preserves pagination by
+  // refetching `episodes.length` rows from offset 0.
+  const reloadEpisodes = useCallback(() => {
+    setEpisodes(prev => {
+      const limit = Math.max(prev.length, PAGE_SIZE);
+      api.getEpisodes(podcastId, limit, 0).then(data => {
+        setEpisodes((data as { episodes: Episode[]; total: number }).episodes);
+        setTotal((data as { episodes: Episode[]; total: number }).total);
+      }).catch(() => {});
+      return prev;
+    });
+  }, [podcastId]);
+
+  // Refetch when auto-advance (or any episode change) hits a row in this list.
+  useEffect(() => {
+    if (!player.episode) return;
+    reloadEpisodes();
+  }, [player.episode?.id, reloadEpisodes]);
+
+  // Refetch when the page becomes visible again — covers app foreground resume
+  // (mobile) and tab refocus (desktop).
+  useEffect(() => {
+    const onVisible = () => { if (!document.hidden) reloadEpisodes(); };
+    const onResume = () => reloadEpisodes();
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('podda:appResumed', onResume);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('podda:appResumed', onResume);
+    };
+  }, [reloadEpisodes]);
 
   const handleLoadMore = async () => {
     setLoadingMore(true);
