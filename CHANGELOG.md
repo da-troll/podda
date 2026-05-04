@@ -7,9 +7,13 @@ Format: one `## v<major>.<minor>.<patch> — <YYYY-MM-DD>` header per release,
 followed by bullet points. `publish-update.sh` requires an entry matching
 the version being published — releases without an entry fail.
 
-## v1.0.50 — 2026-05-04
+## v1.1.0 — 2026-05-04
 
-- Fix the home-screen and splash icon — was incorrectly showing the "podda" wordmark; now shows the correct circular "p" icon
+- Fixed the home-screen and splash icon — no more wordmark squeezed into a circle
+- Episode list now refreshes automatically when episodes complete or you switch back to the app — no more stale "halfway" markers
+- "Update available" banner now opens Google Play instead of a sideload APK
+- Support for in-app messages from the Podda team for things like maintenance windows or new-feature tips
+- Smaller download size and improved crash diagnostics under the hood
 
 ## v1.0.49 — 2026-05-04
 
